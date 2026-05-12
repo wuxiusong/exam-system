@@ -1,0 +1,2896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园在线考试与自动评卷系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        /* 登录页面样式 */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a5fb4 0%, #2e8bc0 50%, #62a0ea 100%);
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 420px;
+            padding: 40px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #1a5fb4, #62a0ea);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+        }
+
+        .login-header .logo svg {
+            width: 50px;
+            height: 50px;
+            fill: white;
+        }
+
+        .login-header h1 {
+            color: #1a1a2e;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .role-switch {
+            display: flex;
+            background: #f0f4f8;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 25px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .role-btn.active {
+            background: linear-gradient(135deg, #1a5fb4, #2e8bc0);
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 95, 180, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e1e5eb;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #1a5fb4;
+            box-shadow: 0 0 0 3px rgba(26, 95, 180, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a5fb4, #2e8bc0);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(26, 95, 180, 0.4);
+        }
+
+        .demo-accounts {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f0f4f8;
+            border-radius: 10px;
+        }
+
+        .demo-accounts h4 {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .demo-accounts p {
+            font-size: 12px;
+            color: #888;
+            margin: 5px 0;
+        }
+
+        .error-msg {
+            color: #e53935;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        /* 主应用容器 */
+        .app-container {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* 顶部导航栏 */
+        .top-nav {
+            background: linear-gradient(135deg, #1a5fb4, #2e8bc0);
+            color: white;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-logo svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        .nav-logo span {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a5fb4;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            bottom: 0;
+            width: 240px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+            z-index: 999;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            gap: 15px;
+        }
+
+        .menu-item:hover {
+            background: #f0f4f8;
+            color: #1a5fb4;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(90deg, #e8f4fd 0%, transparent 100%);
+            color: #1a5fb4;
+            border-left: 4px solid #1a5fb4;
+        }
+
+        .menu-item svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .menu-item span {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            margin-left: 240px;
+            margin-top: 70px;
+            padding: 30px;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* 页面标题 */
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h2 {
+            font-size: 28px;
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        .page-header p {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        /* 统计卡片网格 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        .stat-icon.blue { background: linear-gradient(135deg, #1a5fb4, #62a0ea); }
+        .stat-icon.green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .stat-icon.orange { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .stat-icon.purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .stat-icon.red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .stat-change {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .stat-change.up {
+            background: #e8f8f0;
+            color: #2ecc71;
+        }
+
+        .stat-change.down {
+            background: #fdeaea;
+            color: #e74c3c;
+        }
+
+        /* 表格样式 */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        td {
+            color: #666;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1a5fb4, #2e8bc0);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 15px rgba(26, 95, 180, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #1a5fb4;
+            color: #1a5fb4;
+        }
+
+        .btn-outline:hover {
+            background: #1a5fb4;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* 标签样式 */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-primary { background: #e8f4fd; color: #1a5fb4; }
+        .tag-success { background: #e8f8f0; color: #2ecc71; }
+        .tag-warning { background: #fef5e7; color: #f39c12; }
+        .tag-danger { background: #fdeaea; color: #e74c3c; }
+
+        /* 表单样式 */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5eb;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #1a5fb4;
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* 模态框 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 15px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f0f4f8;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        /* 考试界面 */
+        .exam-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f0f4f8;
+            z-index: 1500;
+        }
+
+        .exam-header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .exam-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .exam-timer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #fff3cd;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .exam-timer.warning {
+            background: #f8d7da;
+            color: #721c24;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .exam-body {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+
+        .exam-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .exam-sidebar {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .question-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .question-type {
+            padding: 5px 15px;
+            background: #e8f4fd;
+            color: #1a5fb4;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .question-score {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #1a1a2e;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px 20px;
+            border: 2px solid #e1e5eb;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-item:hover {
+            border-color: #1a5fb4;
+            background: #f8fafc;
+        }
+
+        .option-item.selected {
+            border-color: #1a5fb4;
+            background: #e8f4fd;
+        }
+
+        .option-item.correct {
+            border-color: #2ecc71;
+            background: #e8f8f0;
+        }
+
+        .option-item.wrong {
+            border-color: #e74c3c;
+            background: #fdeaea;
+        }
+
+        .option-label {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f0f4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .option-item.selected .option-label {
+            background: #1a5fb4;
+            color: white;
+        }
+
+        .option-text {
+            font-size: 16px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .answer-card {
+            margin-bottom: 20px;
+        }
+
+        .answer-card h4 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5eb;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        /* 答题卡 */
+        .answer-sheet h4 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .answer-num {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #f0f4f8;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-num:hover {
+            background: #e1e5eb;
+        }
+
+        .answer-num.answered {
+            background: #1a5fb4;
+            color: white;
+        }
+
+        .answer-num.current {
+            background: #f39c12;
+            color: white;
+            box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.3);
+        }
+
+        .answer-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-dot.unanswered { background: #f0f4f8; }
+        .legend-dot.answered { background: #1a5fb4; }
+        .legend-dot.current { background: #f39c12; }
+
+        /* 页面隐藏 */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            width: 100%;
+            height: 350px;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+
+        /* 数据大屏 */
+        .data-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0f1624 0%, #1a2744 100%);
+            z-index: 3000;
+            padding: 30px;
+            display: none;
+        }
+
+        .data-screen.active {
+            display: block;
+        }
+
+        .screen-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .screen-header h1 {
+            color: white;
+            font-size: 36px;
+            font-weight: 600;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .screen-header p {
+            color: #62a0ea;
+            margin-top: 10px;
+        }
+
+        .screen-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .screen-stat {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .screen-stat-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #62a0ea;
+            text-shadow: 0 0 20px rgba(98, 160, 234, 0.5);
+        }
+
+        .screen-stat-label {
+            color: #888;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .screen-chart-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .screen-chart {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .screen-chart h4 {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .screen-chart-container {
+            height: 250px;
+        }
+
+        .close-screen {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .close-screen:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 试卷类型选择 */
+        .exam-type-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .exam-type-tab {
+            padding: 12px 25px;
+            background: #f0f4f8;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .exam-type-tab.active {
+            background: linear-gradient(135deg, #1a5fb4, #2e8bc0);
+            color: white;
+        }
+
+        /* 筛选栏 */
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-item label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            fill: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            color: #999;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #bbb;
+            font-size: 14px;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0f4f8;
+            border-top-color: #1a5fb4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            height: 8px;
+            background: #e1e5eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1a5fb4, #62a0ea);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* 面包屑 */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #1a5fb4;
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: #888;
+        }
+
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 25px;
+        }
+
+        .tab-item {
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-item:hover {
+            color: #1a5fb4;
+        }
+
+        .tab-item.active {
+            color: #1a5fb4;
+            border-bottom-color: #1a5fb4;
+        }
+
+        /* 考试状态徽章 */
+        .exam-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.pending { background: #f39c12; }
+        .status-dot.active { background: #2ecc71; }
+        .status-dot.completed { background: #1a5fb4; }
+    </style>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div class="login-container" id="loginPage">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                </div>
+                <h1>校园在线考试系统</h1>
+                <p>公平 · 高效 · 智能</p>
+            </div>
+            
+            <div class="role-switch">
+                <button class="role-btn active" data-role="student">学生端</button>
+                <button class="role-btn" data-role="teacher">教师端</button>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>账号</label>
+                    <input type="text" id="username" placeholder="请输入账号" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="password" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="login-btn">登 录</button>
+                <div class="error-msg" id="errorMsg">账号或密码错误，请重试</div>
+            </form>
+
+            <div class="demo-accounts">
+                <h4>演示账号</h4>
+                <p>👨‍🎓 学生：stu001 / 123456</p>
+                <p>👩‍🏫 教师：teacher01 / 123456</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用 -->
+    <div class="app-container" id="appContainer">
+        <!-- 顶部导航 -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <div class="nav-logo">
+                    <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/></svg>
+                    <span>在线考试系统</span>
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">学</div>
+                    <span class="user-name" id="userName">学生姓名</span>
+                </div>
+                <button class="logout-btn" onclick="logout()">退出登录</button>
+            </div>
+        </nav>
+
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-menu" id="sidebarMenu">
+                <!-- 学生端菜单 -->
+                <div class="student-menu">
+                    <div class="menu-item active" data-page="student-dashboard">
+                        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                        <span>学习中心</span>
+                    </div>
+                    <div class="menu-item" data-page="my-exams">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                        <span>我的考试</span>
+                    </div>
+                    <div class="menu-item" data-page="grade-query">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                        <span>成绩查询</span>
+                    </div>
+                </div>
+
+                <!-- 教师端菜单 -->
+                <div class="teacher-menu" style="display:none;">
+                    <div class="menu-item active" data-page="teacher-dashboard">
+                        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                        <span>管理控制台</span>
+                    </div>
+                    <div class="menu-item" data-page="question-bank">
+                        <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+                        <span>题库管理</span>
+                    </div>
+                    <div class="menu-item" data-page="paper-manage">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        <span>试卷管理</span>
+                    </div>
+                    <div class="menu-item" data-page="auto-marking">
+                        <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+                        <span>自动评卷</span>
+                    </div>
+                    <div class="menu-item" data-page="grade-analysis">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-5h2v5zm4 0h-2v-3h2v3zm0-5h-2v-2h2v2zm4 5h-2V7h2v10z"/></svg>
+                        <span>成绩分析</span>
+                    </div>
+                    <div class="menu-item" data-page="data-screen">
+                        <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM9 8h2v8H9zm4 0h2v8h-2z"/></svg>
+                        <span>数据大屏</span>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 学生端页面 -->
+            <!-- 学习中心 -->
+            <div class="page active" id="student-dashboard">
+                <div class="page-header">
+                    <h2>学习中心</h2>
+                    <p>欢迎回来，继续加油学习！</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3z"/></svg>
+                        </div>
+                        <div class="stat-value">12</div>
+                        <div class="stat-label">已完成考试</div>
+                        <span class="stat-change up">↑ 3 本月</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </div>
+                        <div class="stat-value">85.6</div>
+                        <div class="stat-label">平均成绩</div>
+                        <span class="stat-change up">↑ 2.3 分</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                        </div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">待完成考试</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        </div>
+                        <div class="stat-value">第5名</div>
+                        <div class="stat-label">班级排名</div>
+                        <span class="stat-change up">↑ 2 位</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">成绩趋势</h3>
+                    </div>
+                    <div class="chart-container" id="gradeTrendChart"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">最近考试</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>考试名称</th>
+                                    <th>科目</th>
+                                    <th>考试时间</th>
+                                    <th>成绩</th>
+                                    <th>排名</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>高等数学期中考试</td>
+                                    <td>数学</td>
+                                    <td>2024-01-15 09:00</td>
+                                    <td><strong>92</strong></td>
+                                    <td>第3名</td>
+                                    <td><span class="tag tag-success">已完成</span></td>
+                                </tr>
+                                <tr>
+                                    <td>大学英语期末考试</td>
+                                    <td>英语</td>
+                                    <td>2024-01-12 14:00</td>
+                                    <td><strong>88</strong></td>
+                                    <td>第7名</td>
+                                    <td><span class="tag tag-success">已完成</span></td>
+                                </tr>
+                                <tr>
+                                    <td>计算机基础测试</td>
+                                    <td>计算机</td>
+                                    <td>2024-01-10 10:00</td>
+                                    <td><strong>95</strong></td>
+                                    <td>第1名</td>
+                                    <td><span class="tag tag-success">已完成</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的考试 -->
+            <div class="page" id="my-exams">
+                <div class="page-header">
+                    <h2>我的考试</h2>
+                    <p>查看和管理您的考试安排</p>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab-item active" data-tab="pending">待开始 (2)</div>
+                    <div class="tab-item" data-tab="ongoing">进行中 (1)</div>
+                    <div class="tab-item" data-tab="completed">已完成 (12)</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">考试列表</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>考试名称</th>
+                                    <th>科目</th>
+                                    <th>考试时长</th>
+                                    <th>总分</th>
+                                    <th>开始时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="examListBody">
+                                <!-- 动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成绩查询 -->
+            <div class="page" id="grade-query">
+                <div class="page-header">
+                    <h2>成绩查询</h2>
+                    <p>查看考试成绩和详细分析</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">85.6</div>
+                        <div class="stat-label">总平均分</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">92</div>
+                        <div class="stat-label">最高分</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">78</div>
+                        <div class="stat-label">最低分</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">第5名</div>
+                        <div class="stat-label">班级排名</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">成绩详情</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>考试名称</th>
+                                    <th>科目</th>
+                                    <th>成绩</th>
+                                    <th>班级排名</th>
+                                    <th>正确率</th>
+                                    <th>用时</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>高等数学期中考试</td>
+                                    <td>数学</td>
+                                    <td><strong style="color:#2ecc71">92</strong></td>
+                                    <td>第3名</td>
+                                    <td>92%</td>
+                                    <td>45分钟</td>
+                                    <td><button class="btn btn-sm btn-outline" onclick="showGradeDetail('math')">查看详情</button></td>
+                                </tr>
+                                <tr>
+                                    <td>大学英语期末考试</td>
+                                    <td>英语</td>
+                                    <td><strong style="color:#2ecc71">88</strong></td>
+                                    <td>第7名</td>
+                                    <td>88%</td>
+                                    <td>52分钟</td>
+                                    <td><button class="btn btn-sm btn-outline" onclick="showGradeDetail('english')">查看详情</button></td>
+                                </tr>
+                                <tr>
+                                    <td>计算机基础测试</td>
+                                    <td>计算机</td>
+                                    <td><strong style="color:#2ecc71">95</strong></td>
+                                    <td>第1名</td>
+                                    <td>95%</td>
+                                    <td>38分钟</td>
+                                    <td><button class="btn btn-sm btn-outline" onclick="showGradeDetail('computer')">查看详情</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">各科成绩对比</h3>
+                        </div>
+                        <div class="chart-container" id="subjectCompareChart"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">正确率分析</h3>
+                        </div>
+                        <div class="chart-container" id="accuracyChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 教师端页面 -->
+            <!-- 管理控制台 -->
+            <div class="page" id="teacher-dashboard">
+                <div class="page-header">
+                    <h2>管理控制台</h2>
+                    <p>欢迎回来，冯老师！</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                        </div>
+                        <div class="stat-value">186</div>
+                        <div class="stat-label">学生总数</div>
+                        <span class="stat-change up">↑ 12 新增</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm0-8H9V5h6v2z"/></svg>
+                        </div>
+                        <div class="stat-value">458</div>
+                        <div class="stat-label">题目总数</div>
+                        <span class="stat-change up">↑ 35 本月</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        </div>
+                        <div class="stat-value">24</div>
+                        <div class="stat-label">试卷总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-5h2v5zm4 0h-2v-3h2v3zm0-5h-2v-2h2v2zm4 5h-2V7h2v10z"/></svg>
+                        </div>
+                        <div class="stat-value">89.2</div>
+                        <div class="stat-label">班级平均分</div>
+                        <span class="stat-change down">↓ 1.5 分</span>
+                    </div>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">考试成绩分布</h3>
+                        </div>
+                        <div class="chart-container" id="scoreDistChart"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">各科目平均分</h3>
+                        </div>
+                        <div class="chart-container" id="subjectAvgChart"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">最近考试记录</h3>
+                        <button class="btn btn-primary btn-sm">查看全部</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>考试名称</th>
+                                    <th>参加人数</th>
+                                    <th>平均分</th>
+                                    <th>最高分</th>
+                                    <th>最低分</th>
+                                    <th>及格率</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>高等数学期中考试</td>
+                                    <td>45/48</td>
+                                    <td>82.5</td>
+                                    <td>98</td>
+                                    <td>56</td>
+                                    <td>91.1%</td>
+                                    <td><button class="btn btn-sm btn-primary">评卷</button></td>
+                                </tr>
+                                <tr>
+                                    <td>大学英语期末考试</td>
+                                    <td>47/48</td>
+                                    <td>78.3</td>
+                                    <td>95</td>
+                                    <td>52</td>
+                                    <td>85.1%</td>
+                                    <td><button class="btn btn-sm btn-primary">评卷</button></td>
+                                </tr>
+                                <tr>
+                                    <td>计算机基础测试</td>
+                                    <td>48/48</td>
+                                    <td>88.7</td>
+                                    <td>100</td>
+                                    <td>72</td>
+                                    <td>97.9%</td>
+                                    <td><button class="btn btn-sm btn-success">已完成</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 题库管理 -->
+            <div class="page" id="question-bank">
+                <div class="page-header">
+                    <h2>题库管理</h2>
+                    <p>管理考试题库，支持添加、编辑和筛选题目</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">题目列表</h3>
+                        <button class="btn btn-primary" onclick="openAddQuestion()">添加题目</button>
+                    </div>
+                    <div class="filter-bar">
+                        <div class="filter-item">
+                            <label>题型：</label>
+                            <select class="form-select" style="width:150px" id="questionTypeFilter" onchange="filterQuestions()">
+                                <option value="">全部</option>
+                                <option value="single">单选题</option>
+                                <option value="multiple">多选题</option>
+                                <option value="judge">判断题</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>科目：</label>
+                            <select class="form-select" style="width:150px">
+                                <option value="">全部</option>
+                                <option value="math">高等数学</option>
+                                <option value="english">大学英语</option>
+                                <option value="computer">计算机基础</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>难度：</label>
+                            <select class="form-select" style="width:120px">
+                                <option value="">全部</option>
+                                <option value="easy">简单</option>
+                                <option value="medium">中等</option>
+                                <option value="hard">困难</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>题目内容</th>
+                                    <th>题型</th>
+                                    <th>科目</th>
+                                    <th>难度</th>
+                                    <th>分值</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="questionListBody">
+                                <!-- 动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 试卷管理 -->
+            <div class="page" id="paper-manage">
+                <div class="page-header">
+                    <h2>试卷管理</h2>
+                    <p>创建和管理考试试卷，支持固定组卷和随机组卷</p>
+                </div>
+
+                <div class="exam-type-tabs">
+                    <div class="exam-type-tab active" data-type="fixed">固定组卷</div>
+                    <div class="exam-type-tab" data-type="random">随机组卷</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">试卷列表</h3>
+                        <button class="btn btn-primary" onclick="openAddPaper()">创建试卷</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>试卷名称</th>
+                                    <th>科目</th>
+                                    <th>题型结构</th>
+                                    <th>总分</th>
+                                    <th>时长</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>高等数学期中考试A卷</td>
+                                    <td>高等数学</td>
+                                    <td>单选15 + 多选10 + 判断10</td>
+                                    <td>100分</td>
+                                    <td>90分钟</td>
+                                    <td><span class="tag tag-success">已发布</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline">编辑</button>
+                                        <button class="btn btn-sm btn-primary">查看</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>大学英语期末考试B卷</td>
+                                    <td>大学英语</td>
+                                    <td>单选20 + 填空10 + 阅读5</td>
+                                    <td>100分</td>
+                                    <td>120分钟</td>
+                                    <td><span class="tag tag-warning">待发布</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline">编辑</button>
+                                        <button class="btn btn-sm btn-primary">发布</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>计算机基础月考卷</td>
+                                    <td>计算机基础</td>
+                                    <td>单选25 + 判断15</td>
+                                    <td>100分</td>
+                                    <td>60分钟</td>
+                                    <td><span class="tag tag-success">已发布</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline">编辑</button>
+                                        <button class="btn btn-sm btn-primary">查看</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自动评卷 -->
+            <div class="page" id="auto-marking">
+                <div class="page-header">
+                    <h2>自动评卷</h2>
+                    <p>系统自动评阅客观题，支持手动复核主观题</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">156</div>
+                        <div class="stat-label">待评卷</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">89%</div>
+                        <div class="stat-label">自动评卷率</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">24</div>
+                        <div class="stat-label">今日完成</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">98.5%</div>
+                        <div class="stat-label">准确率</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">评卷任务列表</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>考试名称</th>
+                                    <th>科目</th>
+                                    <th>提交人数</th>
+                                    <th>已批改</th>
+                                    <th>自动批改</th>
+                                    <th>截止时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>高等数学期中考试</td>
+                                    <td>高等数学</td>
+                                    <td>45</td>
+                                    <td>42</td>
+                                    <td>38</td>
+                                    <td>2024-01-20</td>
+                                    <td><button class="btn btn-sm btn-primary">继续批改</button></td>
+                                </tr>
+                                <tr>
+                                    <td>大学英语期末考试</td>
+                                    <td>大学英语</td>
+                                    <td>47</td>
+                                    <td>30</td>
+                                    <td>25</td>
+                                    <td>2024-01-22</td>
+                                    <td><button class="btn btn-sm btn-primary">继续批改</button></td>
+                                </tr>
+                                <tr>
+                                    <td>计算机基础测试</td>
+                                    <td>计算机基础</td>
+                                    <td>48</td>
+                                    <td>48</td>
+                                    <td>48</td>
+                                    <td>已完成</td>
+                                    <td><button class="btn btn-sm btn-success">已完成</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成绩分析 -->
+            <div class="page" id="grade-analysis">
+                <div class="page-header">
+                    <h2>成绩分析</h2>
+                    <p>查看考试成绩分布和统计分析</p>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-item">
+                        <label>选择考试：</label>
+                        <select class="form-select" style="width:200px">
+                            <option>高等数学期中考试</option>
+                            <option>大学英语期末考试</option>
+                            <option>计算机基础测试</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">82.5</div>
+                        <div class="stat-label">班级平均分</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">98</div>
+                        <div class="stat-label">最高分</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">56</div>
+                        <div class="stat-label">最低分</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">91.1%</div>
+                        <div class="stat-label">及格率</div>
+                    </div>
+                </div>
+
+                <div class="chart-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">成绩分布直方图</h3>
+                        </div>
+                        <div class="chart-container" id="gradeHistogramChart"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">各题得分率</h3>
+                        </div>
+                        <div class="chart-container" id="questionScoreChart"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">成绩明细表</h3>
+                        <button class="btn btn-sm btn-outline">导出Excel</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>学号</th>
+                                    <th>姓名</th>
+                                    <th>客观题</th>
+                                    <th>主观题</th>
+                                    <th>总分</th>
+                                    <th>班级排名</th>
+                                    <th>答题用时</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2406230240</td>
+                                    <td>江月玲</td>
+                                    <td>58</td>
+                                    <td>34</td>
+                                    <td><strong>92</strong></td>
+                                    <td>第1名</td>
+                                    <td>45分钟</td>
+                                </tr>
+                                <tr>
+                                    <td>2406230201</td>
+                                    <td>郑玲玲</td>
+                                    <td>55</td>
+                                    <td>32</td>
+                                    <td><strong>87</strong></td>
+                                    <td>第3名</td>
+                                    <td>52分钟</td>
+                                </tr>
+                                <tr>
+                                    <td>2406230256</td>
+                                    <td>沈可莹</td>
+                                    <td>52</td>
+                                    <td>30</td>
+                                    <td><strong>82</strong></td>
+                                    <td>第5名</td>
+                                    <td>48分钟</td>
+                                </tr>
+                                <tr>
+                                    <td>2406230243</td>
+                                    <td>吴秀松</td>
+                                    <td>48</td>
+                                    <td>28</td>
+                                    <td><strong>76</strong></td>
+                                    <td>第8名</td>
+                                    <td>55分钟</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据大屏占位 -->
+            <div class="page" id="data-screen-page" style="display:none;">
+                <!-- 数据大屏会在此显示 -->
+            </div>
+        </main>
+    </div>
+
+    <!-- 考试界面 -->
+    <div class="exam-container" id="examInterface">
+        <div class="exam-header">
+            <div class="exam-title" id="examTitle">高等数学期中考试</div>
+            <div class="exam-timer" id="examTimer">
+                <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                <span id="timerDisplay">01:30:00</span>
+            </div>
+            <div style="display:flex;gap:10px">
+                <button class="btn btn-outline" onclick="submitExam()">交卷</button>
+                <button class="btn btn-danger" onclick="exitExam()">退出</button>
+            </div>
+        </div>
+
+        <div class="exam-body">
+            <div class="exam-content" id="examContent">
+                <!-- 题目动态生成 -->
+            </div>
+
+            <div class="exam-sidebar">
+                <div class="answer-sheet">
+                    <h4>答题卡</h4>
+                    <div class="answer-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot unanswered"></div>
+                            <span>未答</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot answered"></div>
+                            <span>已答</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot current"></div>
+                            <span>当前</span>
+                        </div>
+                    </div>
+                    <div class="answer-grid" id="answerGrid">
+                        <!-- 答题号动态生成 -->
+                    </div>
+                </div>
+
+                <div style="margin-top:30px;padding-top:20px;border-top:1px solid #eee;">
+                    <h4 style="font-size:16px;margin-bottom:15px;">考试信息</h4>
+                    <p style="font-size:13px;color:#666;margin-bottom:10px;">
+                        <strong>试卷总分：</strong>100分
+                    </p>
+                    <p style="font-size:13px;color:#666;margin-bottom:10px;">
+                        <strong>及格分数：</strong>60分
+                    </p>
+                    <p style="font-size:13px;color:#666;margin-bottom:10px;">
+                        <strong>题目数量：</strong><span id="totalQuestions">35</span>题
+                    </p>
+                    <p style="font-size:13px;color:#666;">
+                        <strong>已答题目：</strong><span id="answeredCount">0</span>题
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据大屏 -->
+    <div class="data-screen" id="dataScreen">
+        <button class="close-screen" onclick="closeDataScreen()">×</button>
+        <div class="screen-header">
+            <h1>📊 数据驾驶舱</h1>
+            <p>校园在线考试系统 - 实时数据监控</p>
+        </div>
+
+        <div class="screen-grid">
+            <div class="screen-stat">
+                <div class="screen-stat-value" id="screenStudents">186</div>
+                <div class="screen-stat-label">学生总数</div>
+            </div>
+            <div class="screen-stat">
+                <div class="screen-stat-value" id="screenQuestions">458</div>
+                <div class="screen-stat-label">题库总量</div>
+            </div>
+            <div class="screen-stat">
+                <div class="screen-stat-value" id="screenExams">24</div>
+                <div class="screen-stat-label">试卷数量</div>
+            </div>
+            <div class="screen-stat">
+                <div class="screen-stat-value" id="screenAvgScore">89.2</div>
+                <div class="screen-stat-label">平均分数</div>
+            </div>
+        </div>
+
+        <div class="screen-chart-row">
+            <div class="screen-chart">
+                <h4>📈 成绩趋势</h4>
+                <div class="screen-chart-container" id="screenTrendChart"></div>
+            </div>
+            <div class="screen-chart">
+                <h4>📊 成绩分布</h4>
+                <div class="screen-chart-container" id="screenDistChart"></div>
+            </div>
+            <div class="screen-chart">
+                <h4>🏆 班级对比</h4>
+                <div class="screen-chart-container" id="screenClassChart"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加题目模态框 -->
+    <div class="modal-overlay" id="addQuestionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>添加题目</h3>
+                <button class="modal-close" onclick="closeModal('addQuestionModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">题型</label>
+                        <select class="form-select" id="newQuestionType">
+                            <option value="single">单选题</option>
+                            <option value="multiple">多选题</option>
+                            <option value="judge">判断题</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">科目</label>
+                        <select class="form-select" id="newQuestionSubject">
+                            <option value="math">高等数学</option>
+                            <option value="english">大学英语</option>
+                            <option value="computer">计算机基础</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">难度</label>
+                        <select class="form-select" id="newQuestionDifficulty">
+                            <option value="easy">简单</option>
+                            <option value="medium">中等</option>
+                            <option value="hard">困难</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">分值</label>
+                        <input type="number" class="form-input" id="newQuestionScore" value="5">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">题目内容</label>
+                    <textarea class="form-textarea" id="newQuestionContent" placeholder="请输入题目内容..."></textarea>
+                </div>
+                <div class="form-group" id="optionsGroup">
+                    <label class="form-label">选项</label>
+                    <div id="optionsContainer">
+                        <div class="form-row" style="margin-bottom:10px">
+                            <input type="text" class="form-input" placeholder="选项A" id="optionA">
+                        </div>
+                        <div class="form-row" style="margin-bottom:10px">
+                            <input type="text" class="form-input" placeholder="选项B" id="optionB">
+                        </div>
+                        <div class="form-row" style="margin-bottom:10px">
+                            <input type="text" class="form-input" placeholder="选项C" id="optionC">
+                        </div>
+                        <div class="form-row" style="margin-bottom:10px">
+                            <input type="text" class="form-input" placeholder="选项D" id="optionD">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">正确答案</label>
+                    <select class="form-select" id="newQuestionAnswer">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('addQuestionModal')">取消</button>
+                <button class="btn btn-primary" onclick="saveQuestion()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建试卷模态框 -->
+    <div class="modal-overlay" id="addPaperModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>创建试卷</h3>
+                <button class="modal-close" onclick="closeModal('addPaperModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">试卷名称</label>
+                        <input type="text" class="form-input" id="newPaperName" placeholder="请输入试卷名称">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">科目</label>
+                        <select class="form-select" id="newPaperSubject">
+                            <option value="math">高等数学</option>
+                            <option value="english">大学英语</option>
+                            <option value="computer">计算机基础</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">考试时长（分钟）</label>
+                        <input type="number" class="form-input" id="newPaperDuration" value="90">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">总分</label>
+                        <input type="number" class="form-input" id="newPaperTotal" value="100">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">组卷方式</label>
+                    <select class="form-select" id="newPaperType">
+                        <option value="fixed">固定组卷</option>
+                        <option value="random">随机组卷</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">题目配置</label>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:15px">
+                        <div>
+                            <label style="font-size:12px;color:#666">单选题数量</label>
+                            <input type="number" class="form-input" value="15">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;color:#666">多选题数量</label>
+                            <input type="number" class="form-input" value="10">
+                        </div>
+                        <div>
+                            <label style="font-size:12px;color:#666">判断题数量</label>
+                            <input type="number" class="form-input" value="10">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('addPaperModal')">取消</button>
+                <button class="btn btn-primary" onclick="savePaper()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数据
+        const mockData = {
+            users: {
+                'stu001': { password: '123456', name: '江月玲', role: 'student', class: '数据科学2401' },
+                'teacher01': { password: '123456', name: '冯玲珑', role: 'teacher' }
+            },
+            questions: [
+                { id: 1, type: 'single', subject: 'math', difficulty: 'medium', content: '设函数f(x)在x=0处连续，则lim(x→0) f(x)/x存在是f\'(0)存在的（）', options: ['充分条件', '必要条件', '充要条件', '无关条件'], answer: 'B', score: 5 },
+                { id: 2, type: 'single', subject: 'math', difficulty: 'easy', content: '若函数y=f(x)在x=1处可导，则lim(h→0) [f(1+h)-f(1)]/h =（）', options: ['f\'(1)', 'f\'(0)', 'f(1)', 'f(0)'], answer: 'A', score: 5 },
+                { id: 3, type: 'single', subject: 'math', difficulty: 'hard', content: '设函数f(x,y)=x^2+y^2-2x-2y+3，则f(x,y)在点(1,1)处（）', options: ['取得极大值', '取得极小值', '无极值', '无法确定'], answer: 'B', score: 5 },
+                { id: 4, type: 'multiple', subject: 'math', difficulty: 'medium', content: '下列函数在定义域内连续的有（）', options: ['y=sinx', 'y=cosx', 'y=tanx', 'y=lnx'], answer: 'AB', score: 5 },
+                { id: 5, type: 'multiple', subject: 'math', difficulty: 'easy', content: '下列极限存在的有（）', options: ['lim(x→0) sinx/x', 'lim(x→∞) (1+1/x)^x', 'lim(x→0) 1/x', 'lim(x→∞) x'], answer: 'AB', score: 5 },
+                { id: 6, type: 'judge', subject: 'math', difficulty: 'easy', content: '若函数f(x)在x=0处可导，则f(x)在x=0处连续。', options: ['正确', '错误'], answer: 'A', score: 3 },
+                { id: 7, type: 'judge', subject: 'math', difficulty: 'medium', content: '可导函数必为连续函数。', options: ['正确', '错误'], answer: 'A', score: 3 },
+                { id: 8, type: 'single', subject: 'english', difficulty: 'medium', content: 'The professor, as well as his students, _____ to attend the conference.', options: ['plan', 'plans', 'planning', 'planned'], answer: 'B', score: 5 },
+                { id: 9, type: 'single', subject: 'english', difficulty: 'easy', content: 'She _____ her keys, so she couldn\'t get into the house.', options: ['lost', 'has lost', 'had lost', 'loses'], answer: 'C', score: 5 },
+                { id: 10, type: 'judge', subject: 'english', difficulty: 'easy', content: 'Neither the teachers nor the principal were present at the meeting.', options: ['正确', '错误'], answer: 'B', score: 3 },
+                { id: 11, type: 'single', subject: 'computer', difficulty: 'easy', content: '在计算机系统中，以下哪个不是操作系统的主要功能？', options: ['进程管理', '内存管理', '网络管理', '文字处理'], answer: 'D', score: 5 },
+                { id: 12, type: 'single', subject: 'computer', difficulty: 'medium', content: 'HTTP协议默认使用的端口号是（）', options: ['21', '80', '443', '3306'], answer: 'B', score: 5 },
+                { id: 13, type: 'multiple', subject: 'computer', difficulty: 'medium', content: '以下哪些属于数据库管理系统（DBMS）？', options: ['MySQL', 'Oracle', 'Python', 'MongoDB'], answer: 'ABD', score: 5 },
+                { id: 14, type: 'judge', subject: 'computer', difficulty: 'easy', content: '算法的复杂度只与时间有关，与空间无关。', options: ['正确', '错误'], answer: 'B', score: 3 },
+                { id: 15, type: 'judge', subject: 'computer', difficulty: 'medium', content: '云计算是一种只提供计算资源的服务模式。', options: ['正确', '错误'], answer: 'B', score: 3 }
+            ],
+            exams: [
+                { id: 1, name: '高等数学期中考试', subject: 'math', duration: 90, total: 100, startTime: '2024-01-20 09:00', status: 'pending', questions: [1,2,3,4,5,6,7] },
+                { id: 2, name: '大学英语期末考试', subject: 'english', duration: 120, total: 100, startTime: '2024-01-22 14:00', status: 'pending', questions: [8,9,10] },
+                { id: 3, name: '计算机基础测试', subject: 'computer', duration: 60, total: 100, startTime: '2024-01-25 10:00', status: 'ongoing', questions: [11,12,13,14,15] },
+                { id: 4, name: '数据结构月考', subject: 'computer', duration: 90, total: 100, startTime: '2024-01-10 09:00', status: 'completed', questions: [] }
+            ]
+        };
+
+        let currentRole = 'student';
+        let currentUser = null;
+        let examTimer = null;
+        let remainingTime = 0;
+        let currentQuestionIndex = 0;
+        let answers = {};
+        let currentExam = null;
+        let examQuestions = [];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initLoginForm();
+            initRoleSwitch();
+            initSidebar();
+            initTabs();
+            initExamTypeTabs();
+            initCharts();
+            initExamList();
+            initQuestionList();
+        });
+
+        // 登录表单
+        function initLoginForm() {
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                const user = mockData.users[username];
+                if (user && user.password === password) {
+                    currentUser = user;
+                    currentRole = user.role;
+                    loginSuccess();
+                } else {
+                    document.getElementById('errorMsg').style.display = 'block';
+                }
+            });
+        }
+
+        // 角色切换
+        function initRoleSwitch() {
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const role = this.dataset.role;
+                    if (role === 'student') {
+                        document.getElementById('username').value = 'stu001';
+                        document.getElementById('password').value = '123456';
+                    } else {
+                        document.getElementById('username').value = 'teacher01';
+                        document.getElementById('password').value = '123456';
+                    }
+                });
+            });
+
+            // 默认填入学生账号
+            document.getElementById('username').value = 'stu001';
+            document.getElementById('password').value = '123456';
+        }
+
+        // 登录成功
+        function loginSuccess() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
+
+            // 显示对应菜单
+            if (currentRole === 'student') {
+                document.querySelector('.student-menu').style.display = 'block';
+                document.querySelector('.teacher-menu').style.display = 'none';
+                switchPage('student-dashboard');
+            } else {
+                document.querySelector('.student-menu').style.display = 'none';
+                document.querySelector('.teacher-menu').style.display = 'block';
+                switchPage('teacher-dashboard');
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                currentUser = null;
+                document.getElementById('loginPage').style.display = 'flex';
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('errorMsg').style.display = 'none';
+            }
+        }
+
+        // 侧边栏菜单
+        function initSidebar() {
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const page = this.dataset.page;
+                    if (page === 'data-screen') {
+                        openDataScreen();
+                    } else {
+                        switchPage(page);
+                    }
+                });
+            });
+        }
+
+        // 切换页面
+        function switchPage(pageId) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // 显示目标页面
+            document.getElementById(pageId).classList.add('active');
+            // 更新菜单状态
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+            // 重新渲染图表
+            setTimeout(initCharts, 100);
+        }
+
+        // 标签页切换
+        function initTabs() {
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const parent = this.closest('.page');
+                    parent.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // 试卷类型切换
+        function initExamTypeTabs() {
+            document.querySelectorAll('.exam-type-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.exam-type-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // 初始化图表
+        function initCharts() {
+            // 成绩趋势图
+            const gradeTrendChart = echarts.init(document.getElementById('gradeTrendChart'));
+            if (gradeTrendChart) {
+                gradeTrendChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    legend: { data: ['我的成绩', '班级平均'] },
+                    xAxis: { type: 'category', data: ['9月', '10月', '11月', '12月', '1月'] },
+                    yAxis: { type: 'value', min: 60, max: 100 },
+                    series: [
+                        { name: '我的成绩', type: 'line', smooth: true, data: [78, 82, 85, 88, 92], itemStyle: { color: '#1a5fb4' } },
+                        { name: '班级平均', type: 'line', smooth: true, data: [75, 76, 78, 80, 82], itemStyle: { color: '#62a0ea' }, lineStyle: { type: 'dashed' } }
+                    ]
+                });
+            }
+
+            // 科目对比图
+            const subjectCompareChart = echarts.init(document.getElementById('subjectCompareChart'));
+            if (subjectCompareChart) {
+                subjectCompareChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: ['数学', '英语', '计算机', '物理', '化学'] },
+                    yAxis: { type: 'value', min: 0, max: 100 },
+                    series: [{ type: 'bar', data: [92, 88, 95, 85, 90], itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#1a5fb4' }, { offset: 1, color: '#62a0ea' }]) } }]
+                });
+            }
+
+            // 正确率图
+            const accuracyChart = echarts.init(document.getElementById('accuracyChart'));
+            if (accuracyChart) {
+                accuracyChart.setOption({
+                    tooltip: { trigger: 'item' },
+                    series: [{
+                        type: 'pie', radius: ['40%', '70%'],
+                        data: [
+                            { value: 92, name: '单选题 92%', itemStyle: { color: '#1a5fb4' } },
+                            { value: 85, name: '多选题 85%', itemStyle: { color: '#2ecc71' } },
+                            { value: 95, name: '判断题 95%', itemStyle: { color: '#f39c12' } }
+                        ],
+                        label: { formatter: '{b}: {c}%' }
+                    }]
+                });
+            }
+
+            // 成绩分布图
+            const scoreDistChart = echarts.init(document.getElementById('scoreDistChart'));
+            if (scoreDistChart) {
+                scoreDistChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: ['0-60', '60-70', '70-80', '80-90', '90-100'] },
+                    yAxis: { type: 'value' },
+                    series: [{ type: 'bar', data: [3, 8, 15, 12, 7], itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#1a5fb4' }, { offset: 1, color: '#62a0ea' }]) } }]
+                });
+            }
+
+            // 科目平均分图
+            const subjectAvgChart = echarts.init(document.getElementById('subjectAvgChart'));
+            if (subjectAvgChart) {
+                subjectAvgChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    radar: {
+                        indicator: [{ name: '数学', max: 100 }, { name: '英语', max: 100 }, { name: '计算机', max: 100 }, { name: '物理', max: 100 }, { name: '化学', max: 100 }]
+                    },
+                    series: [{ type: 'radar', data: [{ value: [82, 78, 88, 75, 80], name: '班级平均' }] }]
+                });
+            }
+
+            // 成绩直方图
+            const gradeHistogramChart = echarts.init(document.getElementById('gradeHistogramChart'));
+            if (gradeHistogramChart) {
+                gradeHistogramChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: ['0-60', '60-70', '70-80', '80-90', '90-100'] },
+                    yAxis: { type: 'value' },
+                    series: [{ type: 'bar', data: [3, 8, 15, 12, 7], itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#2ecc71' }, { offset: 1, color: '#27ae60' }]) } }]
+                });
+            }
+
+            // 题目得分率图
+            const questionScoreChart = echarts.init(document.getElementById('questionScoreChart'));
+            if (questionScoreChart) {
+                questionScoreChart.setOption({
+                    tooltip: { trigger: 'axis' },
+                    xAxis: { type: 'category', data: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7'] },
+                    yAxis: { type: 'value', min: 0, max: 100 },
+                    series: [{ type: 'line', data: [92, 85, 78, 88, 75, 95, 82], smooth: true, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(26, 95, 180, 0.3)' }, { offset: 1, color: 'rgba(26, 95, 180, 0.05)' }]) }, itemStyle: { color: '#1a5fb4' } }]
+                });
+            }
+
+            window.addEventListener('resize', function() {
+                gradeTrendChart && gradeTrendChart.resize();
+                subjectCompareChart && subjectCompareChart.resize();
+                accuracyChart && accuracyChart.resize();
+                scoreDistChart && scoreDistChart.resize();
+                subjectAvgChart && subjectAvgChart.resize();
+                gradeHistogramChart && gradeHistogramChart.resize();
+                questionScoreChart && questionScoreChart.resize();
+            });
+        }
+
+        // 初始化考试列表
+        function initExamList() {
+            const tbody = document.getElementById('examListBody');
+            tbody.innerHTML = mockData.exams.map(exam => `
+                <tr>
+                    <td>${exam.name}</td>
+                    <td>${getSubjectName(exam.subject)}</td>
+                    <td>${exam.duration}分钟</td>
+                    <td>${exam.total}分</td>
+                    <td>${exam.startTime}</td>
+                    <td>
+                        ${exam.status === 'pending' ? '<button class="btn btn-sm btn-primary" onclick="startExam(' + exam.id + ')">开始考试</button>' : ''}
+                        ${exam.status === 'ongoing' ? '<button class="btn btn-sm btn-warning" onclick="startExam(' + exam.id + ')">继续考试</button>' : ''}
+                        ${exam.status === 'completed' ? '<span class="tag tag-success">已完成</span>' : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 初始化题目列表
+        function initQuestionList() {
+            const tbody = document.getElementById('questionListBody');
+            tbody.innerHTML = mockData.questions.map(q => `
+                <tr>
+                    <td>${q.id}</td>
+                    <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.content}</td>
+                    <td><span class="tag tag-primary">${getTypeName(q.type)}</span></td>
+                    <td>${getSubjectName(q.subject)}</td>
+                    <td><span class="tag ${getDifficultyClass(q.difficulty)}">${getDifficultyName(q.difficulty)}</span></td>
+                    <td>${q.score}分</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline" onclick="editQuestion(${q.id})">编辑</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteQuestion(${q.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 获取科目名称
+        function getSubjectName(subject) {
+            const names = { math: '高等数学', english: '大学英语', computer: '计算机基础' };
+            return names[subject] || subject;
+        }
+
+        // 获取题型名称
+        function getTypeName(type) {
+            const names = { single: '单选题', multiple: '多选题', judge: '判断题' };
+            return names[type] || type;
+        }
+
+        // 获取难度名称
+        function getDifficultyName(diff) {
+            const names = { easy: '简单', medium: '中等', hard: '困难' };
+            return names[diff] || diff;
+        }
+
+        // 获取难度样式
+        function getDifficultyClass(diff) {
+            const classes = { easy: 'tag-success', medium: 'tag-warning', hard: 'tag-danger' };
+            return classes[diff] || '';
+        }
+
+        // 开始考试
+        function startExam(examId) {
+            currentExam = mockData.exams.find(e => e.id === examId);
+            examQuestions = currentExam.questions.map(qId => mockData.questions.find(q => q.id === qId));
+            
+            answers = {};
+            currentQuestionIndex = 0;
+            remainingTime = currentExam.duration * 60;
+
+            document.getElementById('examInterface').style.display = 'block';
+            document.getElementById('examTitle').textContent = currentExam.name;
+            document.getElementById('totalQuestions').textContent = examQuestions.length;
+
+            renderExamQuestions();
+            renderAnswerGrid();
+            updateAnswerCount();
+
+            // 启动计时器
+            if (examTimer) clearInterval(examTimer);
+            examTimer = setInterval(updateTimer, 1000);
+            updateTimerDisplay();
+        }
+
+        // 渲染考试题目
+        function renderExamQuestions() {
+            const container = document.getElementById('examContent');
+            container.innerHTML = examQuestions.map((q, index) => `
+                <div class="question-card" id="question-${index}" style="${index === 0 ? '' : 'display:none'}">
+                    <div class="question-info">
+                        <span class="question-type">${getTypeName(q.type)}</span>
+                        <span class="question-score">本题满分：${q.score}分</span>
+                    </div>
+                    <div class="question-text">${index + 1}. ${q.content}</div>
+                    <div class="options">
+                        ${renderOptions(q, index)}
+                    </div>
+                </div>
+            `).join('');
+
+            // 添加导航按钮
+            container.innerHTML += `
+                <div style="display:flex;justify-content:space-between;margin-top:20px">
+                    <button class="btn btn-outline" id="prevBtn" onclick="prevQuestion()" style="visibility:hidden">上一题</button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题</button>
+                </div>
+            `;
+
+            updateNavButtons();
+        }
+
+        // 渲染选项
+        function renderOptions(question, qIndex) {
+            if (question.type === 'judge') {
+                return `
+                    <div class="option-item ${answers[qIndex] === 'A' ? 'selected' : ''}" onclick="selectOption(${qIndex}, 'A')">
+                        <span class="option-label">√</span>
+                        <span class="option-text">正确</span>
+                    </div>
+                    <div class="option-item ${answers[qIndex] === 'B' ? 'selected' : ''}" onclick="selectOption(${qIndex}, 'B')">
+                        <span class="option-label">×</span>
+                        <span class="option-text">错误</span>
+                    </div>
+                `;
+            }
+            return question.options.map((opt, i) => {
+                const label = String.fromCharCode(65 + i);
+                const isSelected = answers[qIndex] === label;
+                return `
+                    <div class="option-item ${isSelected ? 'selected' : ''}" onclick="selectOption(${qIndex}, '${label}')">
+                        <span class="option-label">${label}</span>
+                        <span class="option-text">${opt}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 选择选项
+        function selectOption(qIndex, value) {
+            answers[qIndex] = value;
+            const questionCard = document.getElementById(`question-${qIndex}`);
+            questionCard.querySelectorAll('.option-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.querySelector('.option-label').textContent === value) {
+                    item.classList.add('selected');
+                }
+            });
+            renderAnswerGrid();
+            updateAnswerCount();
+        }
+
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                document.getElementById(`question-${currentQuestionIndex}`).style.display = 'none';
+                currentQuestionIndex--;
+                document.getElementById(`question-${currentQuestionIndex}`).style.display = 'block';
+                updateNavButtons();
+                renderAnswerGrid();
+            }
+        }
+
+        // 下一题
+        function nextQuestion() {
+            if (currentQuestionIndex < examQuestions.length - 1) {
+                document.getElementById(`question-${currentQuestionIndex}`).style.display = 'none';
+                currentQuestionIndex++;
+                document.getElementById(`question-${currentQuestionIndex}`).style.display = 'block';
+                updateNavButtons();
+                renderAnswerGrid();
+            }
+        }
+
+        // 更新导航按钮
+        function updateNavButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            prevBtn.style.visibility = currentQuestionIndex > 0 ? 'visible' : 'hidden';
+            nextBtn.textContent = currentQuestionIndex === examQuestions.length - 1 ? '完成答题' : '下一题';
+            nextBtn.onclick = currentQuestionIndex === examQuestions.length - 1 ? () => {} : nextQuestion;
+        }
+
+        // 渲染答题卡
+        function renderAnswerGrid() {
+            const grid = document.getElementById('answerGrid');
+            grid.innerHTML = examQuestions.map((_, i) => `
+                <div class="answer-num ${answers[i] ? 'answered' : ''} ${i === currentQuestionIndex ? 'current' : ''}" onclick="jumpToQuestion(${i})">${i + 1}</div>
+            `).join('');
+        }
+
+        // 跳转到指定题目
+        function jumpToQuestion(index) {
+            document.getElementById(`question-${currentQuestionIndex}`).style.display = 'none';
+            currentQuestionIndex = index;
+            document.getElementById(`question-${currentQuestionIndex}`).style.display = 'block';
+            updateNavButtons();
+            renderAnswerGrid();
+        }
+
+        // 更新已答数量
+        function updateAnswerCount() {
+            document.getElementById('answeredCount').textContent = Object.keys(answers).length;
+        }
+
+        // 更新计时器
+        function updateTimer() {
+            remainingTime--;
+            if (remainingTime <= 0) {
+                clearInterval(examTimer);
+                alert('考试时间已到，系统将自动交卷！');
+                submitExam();
+            }
+            updateTimerDisplay();
+        }
+
+        // 更新计时器显示
+        function updateTimerDisplay() {
+            const hours = Math.floor(remainingTime / 3600);
+            const minutes = Math.floor((remainingTime % 3600) / 60);
+            const seconds = remainingTime % 60;
+            document.getElementById('timerDisplay').textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            const timerEl = document.getElementById('examTimer');
+            if (remainingTime < 300) {
+                timerEl.classList.add('warning');
+            }
+        }
+
+        // 交卷
+        function submitExam() {
+            if (confirm('确定要交卷吗？交卷后将无法修改答案。')) {
+                clearInterval(examTimer);
+                document.getElementById('examInterface').style.display = 'none';
+                alert(`考试完成！您已完成 ${Object.keys(answers).length}/${examQuestions.length} 道题目。\n成绩将在批改完成后公布。`);
+            }
+        }
+
+        // 退出考试
+        function exitExam() {
+            if (confirm('确定要退出考试吗？退出后将丢失未提交的答案。')) {
+                clearInterval(examTimer);
+                document.getElementById('examInterface').style.display = 'none';
+            }
+        }
+
+        // 打开添加题目模态框
+        function openAddQuestion() {
+            document.getElementById('addQuestionModal').classList.add('active');
+        }
+
+        // 保存题目
+        function saveQuestion() {
+            const type = document.getElementById('newQuestionType').value;
+            const subject = document.getElementById('newQuestionSubject').value;
+            const difficulty = document.getElementById('newQuestionDifficulty').value;
+            const content = document.getElementById('newQuestionContent').value;
+            const score = document.getElementById('newQuestionScore').value;
+
+            if (!content.trim()) {
+                alert('请输入题目内容');
+                return;
+            }
+
+            const newId = mockData.questions.length + 1;
+            mockData.questions.push({
+                id: newId,
+                type: type,
+                subject: subject,
+                difficulty: difficulty,
+                content: content,
+                options: ['选项A', '选项B', '选项C', '选项D'],
+                answer: 'A',
+                score: parseInt(score)
+            });
+
+            closeModal('addQuestionModal');
+            initQuestionList();
+            alert('题目添加成功！');
+        }
+
+        // 编辑题目
+        function editQuestion(id) {
+            alert('编辑功能演示：题目ID=' + id);
+        }
+
+        // 删除题目
+        function deleteQuestion(id) {
+            if (confirm('确定要删除这道题目吗？')) {
+                mockData.questions = mockData.questions.filter(q => q.id !== id);
+                initQuestionList();
+                alert('题目已删除');
+            }
+        }
+
+        // 打开创建试卷模态框
+        function openAddPaper() {
+            document.getElementById('addPaperModal').classList.add('active');
+        }
+
+        // 保存试卷
+        function savePaper() {
+            const name = document.getElementById('newPaperName').value;
+            if (!name.trim()) {
+                alert('请输入试卷名称');
+                return;
+            }
+            closeModal('addPaperModal');
+            alert('试卷创建成功！');
+        }
+
+        // 关闭模态框
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // 查看成绩详情
+        function showGradeDetail(subject) {
+            alert(`查看 ${getSubjectName(subject)} 成绩详情`);
+        }
+
+        // 筛选题目
+        function filterQuestions() {
+            const type = document.getElementById('questionTypeFilter').value;
+            const tbody = document.getElementById('questionListBody');
+            const filtered = type ? mockData.questions.filter(q => q.type === type) : mockData.questions;
+            tbody.innerHTML = filtered.map(q => `
+                <tr>
+                    <td>${q.id}</td>
+                    <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.content}</td>
+                    <td><span class="tag tag-primary">${getTypeName(q.type)}</span></td>
+                    <td>${getSubjectName(q.subject)}</td>
+                    <td><span class="tag ${getDifficultyClass(q.difficulty)}">${getDifficultyName(q.difficulty)}</span></td>
+                    <td>${q.score}分</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline" onclick="editQuestion(${q.id})">编辑</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteQuestion(${q.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 打开数据大屏
+        function openDataScreen() {
+            document.getElementById('dataScreen').classList.add('active');
+            initDataScreenCharts();
+        }
+
+        // 关闭数据大屏
+        function closeDataScreen() {
+            document.getElementById('dataScreen').classList.remove('active');
+        }
+
+        // 初始化数据大屏图表
+        function initDataScreenCharts() {
+            setTimeout(() => {
+                const screenTrendChart = echarts.init(document.getElementById('screenTrendChart'));
+                if (screenTrendChart) {
+                    screenTrendChart.setOption({
+                        tooltip: { trigger: 'axis' },
+                        xAxis: { type: 'category', data: ['9月', '10月', '11月', '12月', '1月'], axisLine: { lineStyle: { color: '#62a0ea' } }, axisLabel: { color: '#888' } },
+                        yAxis: { type: 'value', axisLine: { lineStyle: { color: '#62a0ea' } }, axisLabel: { color: '#888' }, splitLine: { lineStyle: { color: 'rgba(98, 160, 234, 0.2)' } } },
+                        series: [{ type: 'line', data: [78, 82, 85, 88, 89], smooth: true, areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(98, 160, 234, 0.4)' }, { offset: 1, color: 'rgba(98, 160, 234, 0.05)' }]) }, lineStyle: { color: '#62a0ea', width: 3 }, itemStyle: { color: '#62a0ea' } }]
+                    });
+                }
+
+                const screenDistChart = echarts.init(document.getElementById('screenDistChart'));
+                if (screenDistChart) {
+                    screenDistChart.setOption({
+                        tooltip: { trigger: 'item' },
+                        series: [{
+                            type: 'pie', radius: ['50%', '75%'],
+                            data: [
+                                { value: 15, name: '90-100分', itemStyle: { color: '#2ecc71' } },
+                                { value: 25, name: '80-90分', itemStyle: { color: '#1a5fb4' } },
+                                { value: 30, name: '70-80分', itemStyle: { color: '#62a0ea' } },
+                                { value: 15, name: '60-70分', itemStyle: { color: '#f39c12' } },
+                                { value: 10, name: '60分以下', itemStyle: { color: '#e74c3c' } }
+                            ],
+                            label: { color: '#888', formatter: '{b}\n{c}人' }
+                        }]
+                    });
+                }
+
+                const screenClassChart = echarts.init(document.getElementById('screenClassChart'));
+                if (screenClassChart) {
+                    screenClassChart.setOption({
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['平均分', '及格率'], textStyle: { color: '#888' } },
+                        xAxis: { type: 'category', data: ['数据科学2401', '数据科学2402', '人工智能2401', '软件工程2401'], axisLine: { lineStyle: { color: '#62a0ea' } }, axisLabel: { color: '#888', rotate: 15 } },
+                        yAxis: [{ type: 'value', max: 100, axisLine: { lineStyle: { color: '#62a0ea' } }, axisLabel: { color: '#888' }, splitLine: { lineStyle: { color: 'rgba(98, 160, 234, 0.2)' } } }],
+                        series: [
+                            { name: '平均分', type: 'bar', data: [89, 85, 87, 82], itemStyle: { color: '#1a5fb4' } },
+                            { name: '及格率', type: 'line', yAxisIndex: 0, data: [95, 92, 94, 88], lineStyle: { color: '#2ecc71' }, itemStyle: { color: '#2ecc71' } }
+                        ]
+                    });
+                }
+
+                window.addEventListener('resize', function() {
+                    screenTrendChart && screenTrendChart.resize();
+                    screenDistChart && screenDistChart.resize();
+                    screenClassChart && screenClassChart.resize();
+                });
+            }, 100);
+        }
+    </script>
+</body>
+</html>
