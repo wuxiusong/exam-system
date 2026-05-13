@@ -2252,6 +2252,7 @@
         let answers = {};
         let currentExam = null;
         let examQuestions = [];
+        let currentExamTab = 'pending'; // 当前考试标签
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -2370,6 +2371,13 @@
                     const parent = this.closest('.page');
                     parent.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
+                    
+                    // 如果是考试标签页，更新考试列表
+                    const tabType = this.dataset.tab;
+                    if (tabType === 'pending' || tabType === 'ongoing' || tabType === 'completed') {
+                        currentExamTab = tabType;
+                        initExamList();
+                    }
                 });
             });
         }
@@ -2488,7 +2496,13 @@
         // 初始化考试列表
         function initExamList() {
             const tbody = document.getElementById('examListBody');
-            tbody.innerHTML = mockData.exams.map(exam => `
+            // 根据当前标签过滤考试
+            const filteredExams = mockData.exams.filter(exam => exam.status === currentExamTab);
+            if (filteredExams.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;padding:30px;">暂无考试</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filteredExams.map(exam => `
                 <tr>
                     <td>${exam.name}</td>
                     <td>${getSubjectName(exam.subject)}</td>
@@ -2502,6 +2516,23 @@
                     </td>
                 </tr>
             `).join('');
+            
+            // 更新标签页计数
+            updateExamTabCounts();
+        }
+        
+        // 更新考试标签页计数
+        function updateExamTabCounts() {
+            const pendingCount = mockData.exams.filter(e => e.status === 'pending').length;
+            const ongoingCount = mockData.exams.filter(e => e.status === 'ongoing').length;
+            const completedCount = mockData.exams.filter(e => e.status === 'completed').length;
+            
+            document.querySelectorAll('.tab-item[data-tab]').forEach(tab => {
+                const tabType = tab.dataset.tab;
+                if (tabType === 'pending') tab.textContent = '待开始 (' + pendingCount + ')';
+                if (tabType === 'ongoing') tab.textContent = '进行中 (' + ongoingCount + ')';
+                if (tabType === 'completed') tab.textContent = '已完成 (' + completedCount + ')';
+            });
         }
 
         // 初始化题目列表
@@ -2720,8 +2751,98 @@
             if (confirm('确定要交卷吗？交卷后将无法修改答案。')) {
                 clearInterval(examTimer);
                 document.getElementById('examInterface').style.display = 'none';
-                alert(`考试完成！您已完成 ${Object.keys(answers).length}/${examQuestions.length} 道题目。\n成绩将在批改完成后公布。`);
+                
+                // 自动计算成绩
+                let totalScore = 0;
+                let correctCount = 0;
+                let totalQuestions = examQuestions.length;
+                
+                examQuestions.forEach(q => {
+                    const userAnswer = answers[q.id];
+                    if (userAnswer === q.answer) {
+                        correctCount++;
+                        totalScore += q.score;
+                    }
+                });
+                
+                const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+                
+                // 更新考试状态
+                if (currentExam) {
+                    currentExam.status = 'completed';
+                }
+                
+                // 显示成绩结果
+                showExamResult(totalScore, correctCount, totalQuestions, accuracy);
             }
+        }
+        
+        // 显示考试成绩结果
+        function showExamResult(totalScore, correctCount, totalQuestions, accuracy) {
+            const resultPage = document.getElementById('examResult');
+            if (!resultPage) {
+                // 如果没有结果页面，创建一个
+                const main = document.querySelector('.main-content');
+                const resultHTML = `
+                    <div id="examResult" class="page active" style="padding:40px;">
+                        <div class="result-card" style="background:white;border-radius:16px;padding:40px;max-width:600px;margin:0 auto;box-shadow:0 4px 20px rgba(0,0,0,0.1);text-align:center;">
+                            <h2 style="color:#333;margin-bottom:30px;">🎉 考试完成！</h2>
+                            <div style="font-size:80px;font-weight:bold;color:#1a5fb4;margin:20px 0;">${totalScore} <span style="font-size:24px;color:#666;">分</span></div>
+                            <div style="display:flex;justify-content:center;gap:40px;margin:30px 0;">
+                                <div style="text-align:center;">
+                                    <div style="font-size:36px;color:#67c23a;">${correctCount}</div>
+                                    <div style="color:#666;font-size:14px;">答对题数</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:36px;color:#f56c6c;">${totalQuestions - correctCount}</div>
+                                    <div style="color:#666;font-size:14px;">答错题数</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:36px;color:#e6a23c;">${accuracy}%</div>
+                                    <div style="color:#666;font-size:14px;">正确率</div>
+                                </div>
+                            </div>
+                            <div style="background:#f5f7fa;border-radius:8px;padding:20px;margin:20px 0;">
+                                <div style="display:flex;justify-content:space-between;margin:10px 0;">
+                                    <span>您的成绩</span>
+                                    <span style="font-weight:bold;color:#1a5fb4;">${totalScore}分</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin:10px 0;">
+                                    <span>班级平均</span>
+                                    <span>78分</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin:10px 0;">
+                                    <span>班级排名</span>
+                                    <span style="font-weight:bold;color:#67c23a;">第5名 / 45人</span>
+                                </div>
+                            </div>
+                            <div style="margin-top:30px;">
+                                <span style="color:#67c23a;font-weight:bold;">${accuracy >= 60 ? '🎊 恭喜！您已通过本次考试' : '😅 很遗憾，您未通过本次考试'}</span>
+                            </div>
+                            <button class="btn btn-primary" onclick="backToExamList()" style="margin-top:30px;padding:12px 40px;font-size:16px;">返回考试列表</button>
+                        </div>
+                    </div>
+                `;
+                document.querySelector('.main-content').innerHTML = resultHTML;
+            } else {
+                // 更新已有结果页面
+                document.getElementById('scoreValue').textContent = totalScore + '分';
+                document.getElementById('correctCount').textContent = correctCount;
+                document.getElementById('wrongCount').textContent = totalQuestions - correctCount;
+                document.getElementById('accuracyValue').textContent = accuracy + '%';
+                resultPage.classList.add('active');
+            }
+        }
+        
+        // 返回考试列表
+        function backToExamList() {
+            // 切换到我的考试页面
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelector('.menu-item[data-page="my-exam"]').classList.add('active');
+            document.getElementById('myExamPage').classList.add('active');
+            // 刷新考试列表
+            initExamList();
         }
 
         // 退出考试
