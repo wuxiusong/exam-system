@@ -1477,34 +1477,8 @@
                                     <th>操作</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>高等数学期中考试</td>
-                                    <td>数学</td>
-                                    <td><strong style="color:#2ecc71">92</strong></td>
-                                    <td>第3名</td>
-                                    <td>92%</td>
-                                    <td>45分钟</td>
-                                    <td><button class="btn btn-sm btn-outline" onclick="showGradeDetail('math')">查看详情</button></td>
-                                </tr>
-                                <tr>
-                                    <td>大学英语期末考试</td>
-                                    <td>英语</td>
-                                    <td><strong style="color:#2ecc71">88</strong></td>
-                                    <td>第7名</td>
-                                    <td>88%</td>
-                                    <td>52分钟</td>
-                                    <td><button class="btn btn-sm btn-outline" onclick="showGradeDetail('english')">查看详情</button></td>
-                                </tr>
-                                <tr>
-                                    <td>计算机基础测试</td>
-                                    <td>计算机</td>
-                                    <td><strong style="color:#2ecc71">95</strong></td>
-                                    <td>第1名</td>
-                                    <td>95%</td>
-                                    <td>38分钟</td>
-                                    <td><button class="btn btn-sm btn-outline" onclick="showGradeDetail('computer')">查看详情</button></td>
-                                </tr>
+                            <tbody id="gradeListBody">
+                                <!-- 成绩列表由JS动态生成 -->
                             </tbody>
                         </table>
                     </div>
@@ -2239,9 +2213,11 @@
             exams: [
                 { id: 1, name: '高等数学期中考试', subject: 'math', duration: 90, total: 100, startTime: '2024-01-20 09:00', status: 'pending', questions: [1,2,3,4,5,6,7] },
                 { id: 2, name: '大学英语期末考试', subject: 'english', duration: 120, total: 100, startTime: '2024-01-22 14:00', status: 'pending', questions: [8,9,10] },
-                { id: 3, name: '计算机基础测试', subject: 'computer', duration: 60, total: 100, startTime: '2024-01-25 10:00', status: 'ongoing', questions: [11,12,13,14,15] },
+                { id: 3, name: '计算机基础测试', subject: 'computer', duration: 60, total: 100, startTime: '2024-01-25 10:00', status: 'pending', questions: [11,12,13,14,15] },
                 { id: 4, name: '数据结构月考', subject: 'computer', duration: 90, total: 100, startTime: '2024-01-10 09:00', status: 'completed', questions: [] }
-            ]
+            ],
+            // 学生成绩记录
+            studentScores: []
         };
 
         let currentRole = 'student';
@@ -2362,6 +2338,46 @@
             document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
             // 重新渲染图表
             setTimeout(initCharts, 100);
+            // 如果是成绩查询页面，刷新成绩列表
+            if (pageId === 'grade-query') {
+                initGradeList();
+            }
+        }
+        
+        // 初始化成绩列表
+        function initGradeList() {
+            const tbody = document.getElementById('gradeListBody');
+            if (!tbody) return;
+            
+            const scores = mockData.studentScores;
+            if (scores.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;padding:30px;">暂无考试成绩，请先完成考试</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = scores.map((s, index) => {
+                const rank = Math.floor(Math.random() * 10) + 1;
+                const color = s.score >= 90 ? '#67c23a' : s.score >= 60 ? '#e6a23c' : '#f56c6c';
+                return `
+                    <tr>
+                        <td>${s.examName}</td>
+                        <td>${getSubjectName(s.subject)}</td>
+                        <td><strong style="color:${color}">${s.score}</strong></td>
+                        <td>第${rank}名</td>
+                        <td>${s.accuracy}%</td>
+                        <td>${s.duration}分钟</td>
+                        <td><button class="btn btn-sm btn-outline" onclick="showScoreDetail(${s.examId})">查看详情</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 显示成绩详情
+        function showScoreDetail(examId) {
+            const score = mockData.studentScores.find(s => s.examId === examId);
+            if (score) {
+                alert('考试详情：\n' + score.examName + '\n成绩：' + score.score + '分\n正确率：' + score.accuracy + '%\n答对：' + score.correctCount + '/' + score.totalQuestions + '题');
+            }
         }
 
         // 标签页切换
@@ -2660,7 +2676,11 @@
             const questionCard = document.getElementById(`question-${qIndex}`);
             questionCard.querySelectorAll('.option-item').forEach(item => {
                 item.classList.remove('selected');
-                if (item.querySelector('.option-label').textContent === value) {
+                // 判断题用 √ × 判断，其他用 A B C D 判断
+                const label = item.querySelector('.option-label').textContent;
+                if (label === value || 
+                    (value === 'A' && label === '√') || 
+                    (value === 'B' && label === '×')) {
                     item.classList.add('selected');
                 }
             });
@@ -2767,13 +2787,39 @@
                 
                 const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
                 
-                // 更新考试状态
+                // 计算用时
+                const usedTime = currentExam ? currentExam.duration - Math.floor(remainingTime / 60) : 0;
+                
+                // 保存成绩
                 if (currentExam) {
                     currentExam.status = 'completed';
+                    saveStudentScore(currentExam.id, currentExam.name, currentExam.subject, totalScore, currentExam.total, correctCount, totalQuestions, accuracy, usedTime);
                 }
                 
                 // 显示成绩结果
                 showExamResult(totalScore, correctCount, totalQuestions, accuracy);
+            }
+        }
+        
+        // 保存成绩到数据
+        function saveStudentScore(examId, examName, subject, score, totalScore, correctCount, totalQuestions, accuracy, duration) {
+            const existingIndex = mockData.studentScores.findIndex(s => s.examId === examId);
+            const scoreRecord = {
+                examId: examId,
+                examName: examName,
+                subject: subject,
+                score: score,
+                totalScore: totalScore,
+                correctCount: correctCount,
+                totalQuestions: totalQuestions,
+                accuracy: accuracy,
+                duration: duration,
+                completedAt: new Date().toLocaleString('zh-CN')
+            };
+            if (existingIndex >= 0) {
+                mockData.studentScores[existingIndex] = scoreRecord;
+            } else {
+                mockData.studentScores.push(scoreRecord);
             }
         }
         
