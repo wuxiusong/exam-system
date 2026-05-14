@@ -1709,44 +1709,46 @@
                 $('#registerForm').classList.remove('hidden');
             }
         }
-
-        // 登录类型切换
-        $$('.login-type-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const type = this.dataset.type;
-                const parent = this.parentElement;
-                parent.querySelectorAll('.login-type-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                if (type === 'student') {
-                    $('#loginType').value = 'student';
-                    $('#regType').value = 'student';
-                    $$('.student-field').forEach(f => f.style.display = 'block');
-                } else {
-                    $('#loginType').value = 'teacher';
-                    $('#regType').value = 'teacher';
-                    $$('.student-field').forEach(f => f.style.display = 'none');
-                }
+        
+        // 绑定登录相关事件
+        function bindLoginEvents() {
+            // 登录类型切换
+            $$('.login-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.dataset.type;
+                    const parent = this.parentElement;
+                    parent.querySelectorAll('.login-type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    if (type === 'student') {
+                        $('#loginType').value = 'student';
+                        $('#regType').value = 'student';
+                        $$('.student-field').forEach(f => f.style.display = 'block');
+                    } else {
+                        $('#loginType').value = 'teacher';
+                        $('#regType').value = 'teacher';
+                        $$('.student-field').forEach(f => f.style.display = 'none');
+                    }
+                });
             });
-        });
 
-        // 注册类型切换
-        $$('.reg-type').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const type = this.dataset.type;
-                const parent = this.parentElement;
-                parent.querySelectorAll('.reg-type').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                $('#regType').value = type;
-                if (type === 'student') {
-                    $$('.student-field').forEach(f => f.style.display = 'block');
-                } else {
-                    $$('.student-field').forEach(f => f.style.display = 'none');
-                }
+            // 注册类型切换
+            $$('.reg-type').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const type = this.dataset.type;
+                    const parent = this.parentElement;
+                    parent.querySelectorAll('.reg-type').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    $('#regType').value = type;
+                    if (type === 'student') {
+                        $$('.student-field').forEach(f => f.style.display = 'block');
+                    } else {
+                        $$('.student-field').forEach(f => f.style.display = 'none');
+                    }
+                });
             });
-        });
 
-        // 登录表单提交
-        $('#loginForm').addEventListener('submit', function(e) {
+            // 登录表单提交
+            $('#loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = $('#loginUsername').value.trim();
             const password = $('#loginPassword').value;
@@ -1817,6 +1819,7 @@
             switchTab('login');
             $('#loginUsername').value = username;
         });
+        } // end bindLoginEvents
 
         // 退出登录
         function logout() {
@@ -3456,6 +3459,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             DB.init();
             checkLoginStatus();
+            bindLoginEvents();
             
             // Tab切换事件
             $$('.login-tab').forEach(tab => {
