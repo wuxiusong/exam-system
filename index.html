@@ -1224,6 +1224,11 @@
                     <option value="D">D</option>
                 </select>
             </div>
+            <div class="form-group" id="scoringPointsContainer" style="display:none;">
+                <label>📝 AI采分点（每个采分点对应真实评分项）</label>
+                <div id="scoringPointsList"></div>
+                <button class="btn btn-small btn-secondary" onclick="addScoringPoint()" style="margin-top:10px;width:auto;">+ 添加采分点</button>
+            </div>
             <div class="form-group">
                 <label>分值</label>
                 <input type="number" id="qScore" value="5" min="1" max="100">
@@ -1436,7 +1441,15 @@
                     { id: 3, type: 'multiple', subject: '数学', content: '下列哪些是偶数？', options: { A: '2', B: '3', C: '4', D: '5' }, answer: 'AC', score: 5 },
                     { id: 4, type: 'judge', subject: '数学', content: '0是自然数。', options: { A: '正确', B: '错误' }, answer: 'A', score: 3 },
                     { id: 5, type: 'fill', subject: '数学', content: '圆的周长公式是2πr，其中r表示', answer: '半径', score: 5 },
-                    { id: 6, type: 'essay', subject: '数学', content: '请简述勾股定理的内容。', answer: '直角三角形,两直角边,平方和,斜边,平方', score: 10 },
+                    { id: 6, type: 'essay', subject: '数学', content: '请简述勾股定理的内容。', answer: '指出直角三角形，说明两直角边的平方和等于斜边的平方', score: 10,
+                      scoringPoints: [
+                        { description: '指出前提是直角三角形', keywords: ['直角三角形', '直角', 'RT三角形'], score: 2 },
+                        { description: '提到两直角边', keywords: ['两直角边', '直角边', '两条直角边', '两个直角边'], score: 2 },
+                        { description: '提到平方和关系', keywords: ['平方和', '平方相加', '加起来等于'], score: 2 },
+                        { description: '提到斜边', keywords: ['斜边', '弦', '斜边长'], score: 2 },
+                        { description: '写出完整公式或等式关系', keywords: ['a²+b²=c²', 'a2+b2=c2', '两直角边平方和等于斜边平方', '等于斜边的平方'], score: 2 }
+                      ]
+                    },
                     { id: 7, type: 'single', subject: '语文', content: '"春眠不觉晓"的下一句是？', options: { A: '处处闻啼鸟', B: '夜来风雨声', C: '花落知多少', D: '清明时节雨' }, answer: 'A', score: 5 },
                     { id: 8, type: 'single', subject: '英语', content: 'What is the capital of China?', options: { A: 'Shanghai', B: 'Beijing', C: 'Guangzhou', D: 'Shenzhen' }, answer: 'B', score: 5 },
                     { id: 9, type: 'judge', subject: '英语', content: '"Apple" is a vegetable.', options: { A: 'True', B: 'False' }, answer: 'B', score: 3 },
@@ -1445,7 +1458,14 @@
                     { id: 12, type: 'single', subject: '化学', content: '水的化学式是？', options: { A: 'CO2', B: 'H2O', C: 'NaCl', D: 'O2' }, answer: 'B', score: 5 },
                     { id: 13, type: 'multiple', subject: '化学', content: '下列哪些是金属元素？', options: { A: 'Fe', B: 'O', C: 'Cu', D: 'H' }, answer: 'AC', score: 5 },
                     { id: 14, type: 'judge', subject: '物理', content: '光在真空中的速度是最快的。', options: { A: '正确', B: '错误' }, answer: 'A', score: 3 },
-                    { id: 15, type: 'essay', subject: '物理', content: '请简述牛顿第一定律。', answer: '一切物体,不受外力,总保持,静止状态,匀速直线运动', score: 10 }
+                    { id: 15, type: 'essay', subject: '物理', content: '请简述牛顿第一定律。', answer: '一切物体在不受外力时保持静止或匀速直线运动', score: 10,
+                      scoringPoints: [
+                        { description: '提到一切物体', keywords: ['一切物体', '所有物体', '任何物体', '物体'], score: 2 },
+                        { description: '提到不受外力条件', keywords: ['不受外力', '没有外力', '不受力', '合力为零', '没有受到力'], score: 2 },
+                        { description: '提到静止状态', keywords: ['静止', '不动', '保持静止', '静止状态'], score: 3 },
+                        { description: '提到匀速直线运动', keywords: ['匀速直线运动', '匀速', '直线运动', '等速直线'], score: 3 }
+                      ]
+                    }
                 ];
                 localStorage.setItem('questions', JSON.stringify(questions));
             }
@@ -1549,14 +1569,15 @@
                         <option value="A">A - 正确</option>
                         <option value="B">B - 错误</option>
                     `;
-                } else if (type === 'fill' || type === 'essay') {
+                } else if (type === 'fill') {
                     optionsContainer.style.display = 'none';
                     answerSelect.style.display = 'block';
-                    if (type === 'fill') {
-                        answerSelect.querySelector('select').innerHTML = '<option value="">请输入标准答案</option>';
-                    } else {
-                        answerSelect.querySelector('select').innerHTML = '<option value="">请输入关键词（用逗号分隔）</option>';
-                    }
+                    answerSelect.querySelector('select').innerHTML = '<option value="">请输入标准答案</option>';
+                    document.getElementById('scoringPointsContainer').style.display = 'none';
+                } else if (type === 'essay') {
+                    optionsContainer.style.display = 'none';
+                    answerSelect.style.display = 'none';
+                    document.getElementById('scoringPointsContainer').style.display = 'block';
                 }
             });
 
@@ -1669,13 +1690,13 @@
                 document.getElementById('teacherNav').style.display = 'flex';
                 document.getElementById('studentNav').style.display = 'none';
                 loadTeacherDashboard();
+                showPage('dashboard');
             } else {
                 document.getElementById('teacherNav').style.display = 'none';
                 document.getElementById('studentNav').style.display = 'flex';
                 loadStudentDashboard();
+                showPage('examCenter');
             }
-
-            showPage('dashboard');
         }
 
         // ========== 页面导航 ==========
@@ -1834,6 +1855,11 @@
             editingQuestionId = id;
             document.getElementById('questionModalTitle').textContent = id ? '编辑题目' : '添加题目';
             
+            // 重置采分点
+            scoringPointIndex = 0;
+            document.getElementById('scoringPointsList').innerHTML = '';
+            document.getElementById('scoringPointsContainer').style.display = 'none';
+            
             if (id) {
                 const questions = JSON.parse(localStorage.getItem('questions') || '[]');
                 const q = questions.find(q => q.id === id);
@@ -1847,6 +1873,24 @@
                     document.getElementById('qOptionD').value = q.options?.D || '';
                     document.getElementById('qAnswer').value = q.answer;
                     document.getElementById('qScore').value = q.score;
+                    
+                    // 加载采分点
+                    if (q.type === 'essay' && q.scoringPoints) {
+                        document.getElementById('scoringPointsContainer').style.display = 'block';
+                        q.scoringPoints.forEach(sp => {
+                            addScoringPoint(sp.description, sp.keywords.join('，'), sp.score);
+                        });
+                    } else if (q.type === 'essay') {
+                        // 旧格式兼容：把逗号分隔的answer转成采分点
+                        document.getElementById('scoringPointsContainer').style.display = 'block';
+                        if (q.answer) {
+                            const keywords = q.answer.split(/[,，]/).filter(k => k.trim());
+                            const perPoint = Math.round(q.score / Math.max(keywords.length, 1) * 10) / 10;
+                            keywords.forEach(k => {
+                                addScoringPoint(k, k, perPoint);
+                            });
+                        }
+                    }
                 }
             } else {
                 document.getElementById('qType').value = 'single';
@@ -1861,6 +1905,36 @@
             }
             
             document.getElementById('questionModal').classList.add('active');
+        }
+        
+        let scoringPointIndex = 0;
+        function addScoringPoint(desc = '', keywords = '', score = 2) {
+            const idx = scoringPointIndex++;
+            const html = `
+                <div class="scoring-point-item" id="sp_${idx}" style="border:1px solid #e1e1e1;border-radius:8px;padding:12px;margin-bottom:10px;background:#fafafa;">
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                        <strong style="color:#667eea;">采分点 ${idx+1}</strong>
+                        <button class="btn btn-small btn-danger" onclick="removeScoringPoint('sp_${idx}')" style="width:auto;padding:4px 10px;font-size:12px;margin-left:auto;">删除</button>
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label style="font-size:13px;">评分描述（该点考查什么）</label>
+                        <input type="text" class="sp-desc" placeholder="如：指出直角三角形的前提" value="${desc}">
+                    </div>
+                    <div class="form-group" style="margin-bottom:8px;">
+                        <label style="font-size:13px;">可接受的表述（用逗号分隔，答到任一即得分）</label>
+                        <input type="text" class="sp-keywords" placeholder="如：直角三角形，直角，RT三角形" value="${keywords}">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:13px;">该点分值</label>
+                        <input type="number" class="sp-score" value="${score}" min="1" max="50" style="width:80px;">
+                    </div>
+                </div>
+            `;
+            document.getElementById('scoringPointsList').insertAdjacentHTML('beforeend', html);
+        }
+        
+        function removeScoringPoint(id) {
+            document.getElementById(id)?.remove();
         }
 
         function editQuestion(id) {
@@ -1906,7 +1980,31 @@
             if (type === 'fill') {
                 questionData.answer = answer;
             } else if (type === 'essay') {
-                questionData.answer = answer;
+                // 简答题：收集采分点
+                const spItems = document.querySelectorAll('.scoring-point-item');
+                const scoringPoints = [];
+                let totalSpScore = 0;
+                spItems.forEach(item => {
+                    const desc = item.querySelector('.sp-desc').value.trim();
+                    const kw = item.querySelector('.sp-keywords').value.trim();
+                    const spScore = parseInt(item.querySelector('.sp-score').value) || 2;
+                    if (desc || kw) {
+                        scoringPoints.push({
+                            description: desc,
+                            keywords: kw.split(/[,，]/).map(k => k.trim()).filter(k => k),
+                            score: spScore
+                        });
+                        totalSpScore += spScore;
+                    }
+                });
+                if (scoringPoints.length === 0) {
+                    alert('简答题至少需要一个采分点');
+                    return;
+                }
+                questionData.scoringPoints = scoringPoints;
+                questionData.score = totalSpScore;
+                // 兼容：同时存answer字段
+                questionData.answer = scoringPoints.map(sp => sp.description).join('，');
             } else {
                 questionData.answer = answer;
             }
@@ -2412,23 +2510,35 @@
             document.getElementById('detailQuestions').innerHTML = questions.map((q, i) => {
                 let answerHtml = '';
                 if (q.type === 'essay') {
-                    // 简答题显示AI评分详情
+                    // 简答题显示AI采分点评分详情
                     const aiDetail = q.aiScoreDetail || {};
-                    answerHtml = `
-                        <div>你的答案：<strong>${q.userAnswer || '未答'}</strong></div>
-                        <div>正确答案：<strong style="color: #2ed573;">${q.correctAnswer}</strong></div>
-                        <div>得分：<strong style="color: ${q.score > 0 ? '#2ed573' : '#f5365c'};">${q.score}/${q.maxScore}</strong></div>
-                        <span class="tag tag-ai">🤖 AI智能评分</span>
-                        ${aiDetail.matchedKeywords ? `
+                    if (aiDetail.type === 'scoring_points' && aiDetail.pointResults) {
+                        answerHtml = `
+                            <div>你的答案：<strong>${q.userAnswer || '未答'}</strong></div>
+                            <div>得分：<strong style="color: ${q.score > 0 ? '#2ed573' : '#f5365c'};">${q.score}/${q.maxScore}</strong></div>
+                            <span class="tag tag-ai">🤖 AI采分点评分</span>
                             <div class="ai-score-detail">
-                                <div><strong>AI评分分析：</strong></div>
-                                <div>匹配关键词：${aiDetail.matchedKeywords.length}/${aiDetail.totalKeywords}个</div>
-                                ${aiDetail.matchedKeywords.map(k => `<span class="matched">✓ ${k}</span>`).join(' ')}
-                                ${aiDetail.partialMatches && aiDetail.partialMatches.length > 0 ? `<div>部分匹配：${aiDetail.partialMatches.map(k => `<span class="partial">≈ ${k}</span>`).join(' ')}</div>` : ''}
-                                ${aiDetail.unmatchedKeywords && aiDetail.unmatchedKeywords.length > 0 ? `<div>未匹配：${aiDetail.unmatchedKeywords.map(k => `<span class="unmatched">✗ ${k}</span>`).join(' ')}</div>` : ''}
+                                <div><strong>评分明细：</strong></div>
+                                ${aiDetail.pointResults.map(pr => `
+                                    <div style="display:flex;align-items:center;gap:8px;margin:6px 0;padding:6px 10px;border-radius:6px;background:${pr.matched ? '#f0fff0' : '#fff0f0'};">
+                                        <span style="font-size:16px;">${pr.matched ? '✅' : '❌'}</span>
+                                        <span style="flex:1;">${pr.description}</span>
+                                        ${pr.matched ? `<span style="color:#2ed573;font-weight:bold;">+${pr.earned}分</span><span style="color:#888;font-size:12px;">（匹配："${pr.matchedKeyword}"）</span>` : `<span style="color:#f5365c;font-weight:bold;">0/${pr.score}分</span>`}
+                                    </div>
+                                `).join('')}
+                                <div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee;">
+                                    <strong>合计：${aiDetail.earnedPoints}/${aiDetail.totalPoints}分</strong>
+                                </div>
                             </div>
-                        ` : ''}
-                    `;
+                        `;
+                    } else {
+                        answerHtml = `
+                            <div>你的答案：<strong>${q.userAnswer || '未答'}</strong></div>
+                            <div>参考答案：<strong style="color: #2ed573;">${q.correctAnswer}</strong></div>
+                            <div>得分：<strong style="color: ${q.score > 0 ? '#2ed573' : '#f5365c'};">${q.score}/${q.maxScore}</strong></div>
+                            <span class="tag tag-ai">🤖 AI智能评分</span>
+                        `;
+                    }
                 } else {
                     answerHtml = `
                         <div>你的答案：<strong>${q.userAnswer || '未答'}</strong></div>
@@ -2984,38 +3094,91 @@
             return synonyms;
         }
 
-        // 检查关键词是否匹配（支持同义词和部分匹配）
+        // 检查关键词是否匹配（支持同义词和语义模糊匹配）
         function checkKeywordMatch(keyword, text) {
             const textLower = text.toLowerCase();
             const keywordLower = keyword.toLowerCase();
             
             // 精确包含
             if (textLower.includes(keywordLower)) {
-                return { matched: true, type: 'exact' };
+                return { matched: true, type: 'exact', score: 1.0 };
             }
             
             // 同义词匹配
             const synonyms = getSynonyms(keywordLower);
             for (const syn of synonyms) {
                 if (textLower.includes(syn.toLowerCase())) {
-                    return { matched: true, type: 'synonym', matchedWord: syn };
+                    return { matched: true, type: 'synonym', matchedWord: syn, score: 0.9 };
                 }
             }
             
-            // 部分匹配（关键词长度大于3时才检查部分匹配）
-            if (keywordLower.length >= 4) {
-                const partialLength = Math.floor(keywordLower.length * 0.6);
-                for (let i = partialLength; i <= keywordLower.length; i++) {
-                    for (let j = 0; j <= keywordLower.length - i; j++) {
-                        const partial = keywordLower.substring(j, j + i);
-                        if (partial.length >= 3 && textLower.includes(partial)) {
-                            return { matched: true, type: 'partial', matchedWord: partial };
+            // 将关键词拆分为子词/字，逐个匹配（核心改进：搭边也给分）
+            // 例如 "直角三角形" 拆成 ["直角", "三角形"] 或 ["直角", "三角", "形"]
+            const subWords = splitIntoSubWords(keywordLower);
+            if (subWords.length > 1) {
+                let matchedCount = 0;
+                const matchedParts = [];
+                for (const sw of subWords) {
+                    if (sw.length < 2) continue;
+                    let partMatched = false;
+                    // 精确包含子词
+                    if (textLower.includes(sw)) {
+                        partMatched = true;
+                    }
+                    // 子词的同义词
+                    if (!partMatched) {
+                        const swSynonyms = getSynonyms(sw);
+                        for (const syn of swSynonyms) {
+                            if (textLower.includes(syn.toLowerCase())) {
+                                partMatched = true;
+                                break;
+                            }
                         }
                     }
+                    if (partMatched) {
+                        matchedCount++;
+                        matchedParts.push(sw);
+                    }
+                }
+                if (matchedCount > 0) {
+                    const ratio = matchedCount / subWords.length;
+                    // 匹配一半以上给0.7，匹配一部分给0.4
+                    const score = ratio >= 0.5 ? 0.7 : 0.4;
+                    return { matched: true, type: 'partial', matchedWord: matchedParts.join('+'), score: score };
                 }
             }
             
-            return { matched: false, type: 'none' };
+            // 单字/短词模糊：只要关键词的每个字在文本中出现率超过50%就算部分匹配
+            if (keywordLower.length >= 2) {
+                let charMatchCount = 0;
+                for (const ch of keywordLower) {
+                    if (textLower.includes(ch)) charMatchCount++;
+                }
+                const charRatio = charMatchCount / keywordLower.length;
+                if (charRatio >= 0.6) {
+                    return { matched: true, type: 'fuzzy', matchedWord: `字符匹配${Math.round(charRatio*100)}%`, score: 0.3 };
+                }
+            }
+            
+            return { matched: false, type: 'none', score: 0 };
+        }
+        
+        // 将关键词拆分为有意义的子词
+        function splitIntoSubWords(keyword) {
+            // 常见词语切分（2-4字词优先）
+            const words = [];
+            let remaining = keyword;
+            // 尝试2字切分
+            while (remaining.length > 0) {
+                if (remaining.length <= 3) {
+                    words.push(remaining);
+                    break;
+                }
+                // 默认2字一组
+                words.push(remaining.substring(0, 2));
+                remaining = remaining.substring(2);
+            }
+            return words.filter(w => w.length >= 2);
         }
 
         function autoGrade() {
@@ -3048,44 +3211,61 @@
                         score = q.score;
                     }
                 } else if (q.type === 'essay') {
-                    correctAnswer = q.answer;
-                    // 简答题：AI智能评分
-                    const keywords = q.answer.split(/[,，]/).map(k => k.trim()).filter(k => k);
-                    const userText = userAnswer.toLowerCase();
+                    correctAnswer = q.answer || '';
+                    const userText = userAnswer.trim();
                     
-                    const matchedKeywords = [];
-                    const partialMatches = [];
-                    const unmatchedKeywords = [];
-                    
-                    keywords.forEach(k => {
-                        const matchResult = checkKeywordMatch(k, userText);
-                        if (matchResult.matched) {
-                            if (matchResult.type === 'exact') {
-                                matchedKeywords.push(k);
-                            } else {
-                                partialMatches.push(k + (matchResult.matchedWord ? ` (≈${matchResult.matchedWord})` : ''));
+                    // 使用采分点评分
+                    if (q.scoringPoints && q.scoringPoints.length > 0) {
+                        let totalEarned = 0;
+                        const pointResults = [];
+                        
+                        q.scoringPoints.forEach(sp => {
+                            const pointResult = {
+                                description: sp.description,
+                                score: sp.score,
+                                earned: 0,
+                                matched: false,
+                                matchedKeyword: ''
+                            };
+                            
+                            // 检查学生答案是否包含该采分点的任一关键词
+                            for (const kw of sp.keywords) {
+                                if (kw && userText.includes(kw)) {
+                                    pointResult.matched = true;
+                                    pointResult.earned = sp.score;
+                                    pointResult.matchedKeyword = kw;
+                                    break;
+                                }
                             }
-                        } else {
-                            unmatchedKeywords.push(k);
-                        }
-                    });
-                    
-                    // 计算得分：精确匹配给全分，部分匹配给一半分数
-                    const exactWeight = 1.0;
-                    const partialWeight = 0.5;
-                    
-                    const exactScore = (matchedKeywords.length / keywords.length) * q.score * exactWeight;
-                    const partialScore = (partialMatches.length / keywords.length) * q.score * partialWeight;
-                    score = Math.round(exactScore + partialScore);
-                    
-                    // AI评分详情
-                    aiScoreDetail = {
-                        matchedKeywords,
-                        partialMatches,
-                        unmatchedKeywords,
-                        totalKeywords: keywords.length,
-                        matchType: 'ai_smart'
-                    };
+                            
+                            totalEarned += pointResult.earned;
+                            pointResults.push(pointResult);
+                        });
+                        
+                        score = totalEarned;
+                        
+                        // AI评分详情
+                        aiScoreDetail = {
+                            type: 'scoring_points',
+                            pointResults: pointResults,
+                            totalPoints: q.scoringPoints.reduce((sum, sp) => sum + sp.score, 0),
+                            earnedPoints: totalEarned
+                        };
+                    } else {
+                        // 旧格式兼容：没有采分点时，按关键词匹配
+                        const keywords = (q.answer || '').split(/[,，]/).map(k => k.trim()).filter(k => k);
+                        let matched = 0;
+                        keywords.forEach(k => {
+                            if (userText.includes(k)) matched++;
+                        });
+                        score = keywords.length > 0 ? Math.round((matched / keywords.length) * q.score) : 0;
+                        
+                        aiScoreDetail = {
+                            type: 'legacy',
+                            matchedKeywords: matched,
+                            totalKeywords: keywords.length
+                        };
+                    }
                 }
 
                 totalScore += score;
