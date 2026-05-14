@@ -413,6 +413,10 @@
             line-height: 1.8;
             margin-bottom: 20px;
         }
+        .question-score {
+            color: #667eea;
+            font-weight: bold;
+        }
         .option-list {
             list-style: none;
         }
@@ -531,6 +535,9 @@
         .stat-card.red {
             background: linear-gradient(135deg, #f5365c 0%, #fb434a 100%);
         }
+        .stat-card.purple {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
         .stat-value {
             font-size: 36px;
             font-weight: bold;
@@ -628,6 +635,14 @@
             background: #fff3cd;
             color: #ffc107;
         }
+        .tag-danger {
+            background: #f8d7da;
+            color: #dc3545;
+        }
+        .tag-ai {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
         /* 进度条 */
         .progress-bar {
             height: 8px;
@@ -694,6 +709,119 @@
             font-size: 13px;
             color: #856404;
         }
+        /* 防切屏警告区域 */
+        .exam-anti-cheat-bar {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .exam-anti-cheat-bar.active {
+            display: block;
+        }
+        .exam-anti-cheat-bar h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cheat-count {
+            background: #f5365c;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .cheat-warnings {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .cheat-warning-item {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        /* 成绩结果页面 */
+        .result-summary {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .result-grade {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .result-grade.excellent {
+            color: #2ed573;
+        }
+        .result-grade.good {
+            color: #667eea;
+        }
+        .result-grade.pass {
+            color: #ffa502;
+        }
+        .result-grade.fail {
+            color: #f5365c;
+        }
+        .result-message {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .result-detail-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+        }
+        .result-detail-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        /* 成绩详情卡片 */
+        .score-detail-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        .score-detail-card h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        /* AI评分详情 */
+        .ai-score-detail {
+            background: #e8f4ff;
+            border: 1px solid #b3d8ff;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #0056b3;
+        }
+        .ai-score-detail .keyword-match {
+            margin: 5px 0;
+        }
+        .ai-score-detail .matched {
+            color: #2ed573;
+            font-weight: bold;
+        }
+        .ai-score-detail .partial {
+            color: #ffa502;
+        }
+        .ai-score-detail .unmatched {
+            color: #999;
+        }
         /* 响应式 */
         @media (max-width: 768px) {
             .exam-body {
@@ -728,6 +856,30 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        /* 模态框内联样式 */
+        .modal-section {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .modal-section-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .config-grid .form-group {
+            margin-bottom: 10px;
+        }
+        .config-grid label {
+            font-size: 14px;
+            color: #666;
         }
     </style>
 </head>
@@ -900,6 +1052,7 @@
                                 <th>班级</th>
                                 <th>试卷</th>
                                 <th>得分</th>
+                                <th>满分</th>
                                 <th>排名</th>
                                 <th>用时</th>
                                 <th>提交时间</th>
@@ -927,6 +1080,7 @@
                             <tr>
                                 <th>试卷名称</th>
                                 <th>得分</th>
+                                <th>满分</th>
                                 <th>排名</th>
                                 <th>用时</th>
                                 <th>提交时间</th>
@@ -941,6 +1095,12 @@
 
             <!-- 考试页面 -->
             <div class="page" id="examPage">
+                <!-- 防切屏警告区域 -->
+                <div class="exam-anti-cheat-bar" id="examAntiCheatBar">
+                    <h4>🛡️ 考试监控 <span class="cheat-count" id="cheatCountDisplay">0/3</span></h4>
+                    <div class="cheat-warnings" id="cheatWarningsList"></div>
+                </div>
+                
                 <div class="exam-info" id="examInfo"></div>
                 <div class="exam-header">
                     <div>
@@ -978,6 +1138,20 @@
                                 <div class="progress-fill" id="examProgress"></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成绩结果页面 -->
+            <div class="page" id="resultPage">
+                <div class="result-summary" id="resultSummary">
+                    <!-- 动态生成 -->
+                </div>
+                <div class="score-detail-card" id="scoreDetailCard" style="display: none;">
+                    <h4>📝 答题详情</h4>
+                    <div id="scoreDetails"></div>
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="btn btn-small btn-secondary" onclick="backFromResult()">返回考试中心</button>
                     </div>
                 </div>
             </div>
@@ -1062,9 +1236,10 @@
     <div class="modal" id="examModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>创建试卷</h3>
+                <h3 id="examModalTitle">创建试卷</h3>
                 <button class="modal-close" onclick="closeModal('examModal')">×</button>
             </div>
+            <input type="hidden" id="editingExamId">
             <div class="form-group">
                 <label>试卷名称</label>
                 <input type="text" id="eName" placeholder="如：2024年春季期末考试">
@@ -1087,51 +1262,82 @@
                 <label>及格分数</label>
                 <input type="number" id="ePassScore" value="60" min="1" max="100">
             </div>
-            <div class="form-group">
-                <label>单选题数量</label>
-                <input type="number" id="eSingleCount" value="10" min="0" max="50">
+            
+            <div class="modal-section">
+                <div class="modal-section-title">📋 单选题配置</div>
+                <div class="config-grid">
+                    <div class="form-group">
+                        <label>数量</label>
+                        <input type="number" id="eSingleCount" value="10" min="0" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label>每题分值</label>
+                        <input type="number" id="eSingleScore" value="5" min="1" max="20">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>单选题每题分值</label>
-                <input type="number" id="eSingleScore" value="5" min="1" max="20">
+            
+            <div class="modal-section">
+                <div class="modal-section-title">📋 多选题配置</div>
+                <div class="config-grid">
+                    <div class="form-group">
+                        <label>数量</label>
+                        <input type="number" id="eMultiCount" value="5" min="0" max="30">
+                    </div>
+                    <div class="form-group">
+                        <label>每题分值</label>
+                        <input type="number" id="eMultiScore" value="5" min="1" max="20">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>多选题数量</label>
-                <input type="number" id="eMultiCount" value="5" min="0" max="30">
+            
+            <div class="modal-section">
+                <div class="modal-section-title">📋 判断题配置</div>
+                <div class="config-grid">
+                    <div class="form-group">
+                        <label>数量</label>
+                        <input type="number" id="eJudgeCount" value="10" min="0" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label>每题分值</label>
+                        <input type="number" id="eJudgeScore" value="3" min="1" max="20">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>多选题每题分值</label>
-                <input type="number" id="eMultiScore" value="5" min="1" max="20">
+            
+            <div class="modal-section">
+                <div class="modal-section-title">📋 填空题配置</div>
+                <div class="config-grid">
+                    <div class="form-group">
+                        <label>数量</label>
+                        <input type="number" id="eFillCount" value="5" min="0" max="30">
+                    </div>
+                    <div class="form-group">
+                        <label>每题分值</label>
+                        <input type="number" id="eFillScore" value="5" min="1" max="20">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>判断题数量</label>
-                <input type="number" id="eJudgeCount" value="10" min="0" max="50">
+            
+            <div class="modal-section">
+                <div class="modal-section-title">📋 简答题配置</div>
+                <div class="config-grid">
+                    <div class="form-group">
+                        <label>数量</label>
+                        <input type="number" id="eEssayCount" value="2" min="0" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label>每题分值</label>
+                        <input type="number" id="eEssayScore" value="10" min="1" max="50">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>判断题每题分值</label>
-                <input type="number" id="eJudgeScore" value="3" min="1" max="20">
-            </div>
-            <div class="form-group">
-                <label>填空题数量</label>
-                <input type="number" id="eFillCount" value="5" min="0" max="30">
-            </div>
-            <div class="form-group">
-                <label>填空题每题分值</label>
-                <input type="number" id="eFillScore" value="5" min="1" max="20">
-            </div>
-            <div class="form-group">
-                <label>简答题数量</label>
-                <input type="number" id="eEssayCount" value="2" min="0" max="20">
-            </div>
-            <div class="form-group">
-                <label>简答题每题分值</label>
-                <input type="number" id="eEssayScore" value="10" min="1" max="50">
-            </div>
+            
             <div class="form-group">
                 <label>开放班级（留空表示全部可考）</label>
                 <input type="text" id="eAllowedClasses" placeholder="如：计算机1班,计算机2班">
             </div>
-            <button class="btn" onclick="saveExam()">创建试卷</button>
+            <button class="btn" id="saveExamBtn" onclick="saveExam()">创建试卷</button>
         </div>
     </div>
 
@@ -1146,7 +1352,64 @@
         let examStartTime = null;
         let examTimer = null;
         let cheatLogs = [];
+        let cheatCount = 0;
+        const MAX_CHEAT_COUNT = 3;
         let editingQuestionId = null;
+        let currentExamResult = null; // 当前考试结果
+
+        // 同义词词典
+        const synonymDict = {
+            '增加': ['增大', '增长', '增多', '提高', '提升', '加大', '扩展'],
+            '增大': ['增加', '增长', '变大', '扩大', '提高', '提升'],
+            '减少': ['减小', '降低', '缩小', '缩小', '减弱', '降低'],
+            '减小': ['减少', '降低', '缩小', '减弱'],
+            '正方形': ['方形'],
+            '三角形': ['三角'],
+            '圆形': ['圆'],
+            '速度': ['速率'],
+            '质量': ['品质'],
+            '能量': ['功'],
+            '压力': ['压强'],
+            '等于': ['等于', '为', '是'],
+            '大于': ['>', '大于', '超过'],
+            '小于': ['<', '小于', '不足'],
+            '和': ['加', '与', '及', '+'],
+            '差': ['减', '减去'],
+            '乘': ['乘以', '乘以', '*', '×'],
+            '除': ['除以', '除以', '/', '÷'],
+            '平方': ['二次方'],
+            '立方': ['三次方'],
+            '根': ['开方', '√'],
+            '等于零': ['为零', '为0', '等于0', '是0'],
+            '静止': ['不动', '停止'],
+            '运动': ['移动', '活动'],
+            '匀速': ['等速', '均匀速度'],
+            '加速': ['加快'],
+            '减速': ['减慢'],
+            '惯性': ['惰性'],
+            '重力': ['重量'],
+            '摩擦': ['磨擦'],
+            '电阻': ['阻抗'],
+            '电压': ['电势差', '电位差'],
+            '电流': ['电荷流动'],
+            '导体': ['能导电的物质'],
+            '绝缘体': ['不导电的物质'],
+            '化学反应': ['化学变化'],
+            '物理变化': ['物理反应'],
+            '氧化': ['氧化反应'],
+            '还原': ['还原反应'],
+            '酸': ['酸性物质'],
+            '碱': ['碱性物质'],
+            '盐': ['盐类'],
+            '溶液': ['液态溶液'],
+            '沉淀': ['沉到底部'],
+            '燃烧': ['着火', '焚烧'],
+            '蒸发': ['汽化', '挥发'],
+            '凝固': ['固化'],
+            '融化': ['熔化', '熔解'],
+            '升华': ['直接汽化'],
+            '凝华': ['直接固化']
+        };
 
         // ========== 初始化 ==========
         document.addEventListener('DOMContentLoaded', function() {
@@ -1173,7 +1436,7 @@
                     { id: 3, type: 'multiple', subject: '数学', content: '下列哪些是偶数？', options: { A: '2', B: '3', C: '4', D: '5' }, answer: 'AC', score: 5 },
                     { id: 4, type: 'judge', subject: '数学', content: '0是自然数。', options: { A: '正确', B: '错误' }, answer: 'A', score: 3 },
                     { id: 5, type: 'fill', subject: '数学', content: '圆的周长公式是2πr，其中r表示', answer: '半径', score: 5 },
-                    { id: 6, type: 'essay', subject: '数学', content: '请简述勾股定理的内容。', answer: '直角三角形两直角边的平方和等于斜边的平方', score: 10 },
+                    { id: 6, type: 'essay', subject: '数学', content: '请简述勾股定理的内容。', answer: '直角三角形,两直角边,平方和,斜边,平方', score: 10 },
                     { id: 7, type: 'single', subject: '语文', content: '"春眠不觉晓"的下一句是？', options: { A: '处处闻啼鸟', B: '夜来风雨声', C: '花落知多少', D: '清明时节雨' }, answer: 'A', score: 5 },
                     { id: 8, type: 'single', subject: '英语', content: 'What is the capital of China?', options: { A: 'Shanghai', B: 'Beijing', C: 'Guangzhou', D: 'Shenzhen' }, answer: 'B', score: 5 },
                     { id: 9, type: 'judge', subject: '英语', content: '"Apple" is a vegetable.', options: { A: 'True', B: 'False' }, answer: 'B', score: 3 },
@@ -1182,7 +1445,7 @@
                     { id: 12, type: 'single', subject: '化学', content: '水的化学式是？', options: { A: 'CO2', B: 'H2O', C: 'NaCl', D: 'O2' }, answer: 'B', score: 5 },
                     { id: 13, type: 'multiple', subject: '化学', content: '下列哪些是金属元素？', options: { A: 'Fe', B: 'O', C: 'Cu', D: 'H' }, answer: 'AC', score: 5 },
                     { id: 14, type: 'judge', subject: '物理', content: '光在真空中的速度是最快的。', options: { A: '正确', B: '错误' }, answer: 'A', score: 3 },
-                    { id: 15, type: 'essay', subject: '物理', content: '请简述牛顿第一定律。', answer: '一切物体在没有受到外力作用时，总保持静止状态或匀速直线运动状态', score: 10 }
+                    { id: 15, type: 'essay', subject: '物理', content: '请简述牛顿第一定律。', answer: '一切物体,不受外力,总保持,静止状态,匀速直线运动', score: 10 }
                 ];
                 localStorage.setItem('questions', JSON.stringify(questions));
             }
@@ -1557,7 +1820,7 @@
                     <td>${q.id}</td>
                     <td>${q.content.substring(0, 50)}${q.content.length > 50 ? '...' : ''}</td>
                     <td><span class="tag tag-primary">${typeNames[q.type]}</span></td>
-                    <td>${q.subject}</td>
+                    <td>${q.subject || '-'}</td>
                     <td>${q.score}分</td>
                     <td>
                         <button class="btn btn-small" onclick="editQuestion(${q.id})">编辑</button>
@@ -1576,7 +1839,7 @@
                 const q = questions.find(q => q.id === id);
                 if (q) {
                     document.getElementById('qType').value = q.type;
-                    document.getElementById('qSubject').value = q.subject;
+                    document.getElementById('qSubject').value = q.subject || '数学';
                     document.getElementById('qContent').value = q.content;
                     document.getElementById('qOptionA').value = q.options?.A || '';
                     document.getElementById('qOptionB').value = q.options?.B || '';
@@ -1692,6 +1955,7 @@
                         <td>${e.passScore}分</td>
                         <td><span class="tag ${e.status === 'active' ? 'tag-success' : 'tag-warning'}">${e.status === 'active' ? '启用' : '禁用'}</span></td>
                         <td>
+                            <button class="btn btn-small" onclick="editExam(${e.id})">编辑</button>
                             <button class="btn btn-small btn-danger" onclick="deleteExam(${e.id})">删除</button>
                         </td>
                     </tr>
@@ -1699,8 +1963,54 @@
             }).join('');
         }
 
-        function openExamModal() {
+        function openExamModal(id = null) {
+            document.getElementById('editingExamId').value = id || '';
+            document.getElementById('examModalTitle').textContent = id ? '编辑试卷' : '创建试卷';
+            document.getElementById('saveExamBtn').textContent = id ? '保存修改' : '创建试卷';
+            
+            if (id) {
+                const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+                const exam = exams.find(e => e.id === id);
+                if (exam) {
+                    document.getElementById('eName').value = exam.name;
+                    document.getElementById('eSubject').value = exam.subject;
+                    document.getElementById('eDuration').value = exam.duration;
+                    document.getElementById('ePassScore').value = exam.passScore;
+                    document.getElementById('eSingleCount').value = exam.config.single;
+                    document.getElementById('eSingleScore').value = exam.config.singleScore;
+                    document.getElementById('eMultiCount').value = exam.config.multi;
+                    document.getElementById('eMultiScore').value = exam.config.multiScore;
+                    document.getElementById('eJudgeCount').value = exam.config.judge;
+                    document.getElementById('eJudgeScore').value = exam.config.judgeScore;
+                    document.getElementById('eFillCount').value = exam.config.fill;
+                    document.getElementById('eFillScore').value = exam.config.fillScore;
+                    document.getElementById('eEssayCount').value = exam.config.essay;
+                    document.getElementById('eEssayScore').value = exam.config.essayScore;
+                    document.getElementById('eAllowedClasses').value = exam.allowedClasses || '';
+                }
+            } else {
+                document.getElementById('eName').value = '';
+                document.getElementById('eSubject').value = '数学';
+                document.getElementById('eDuration').value = '60';
+                document.getElementById('ePassScore').value = '60';
+                document.getElementById('eSingleCount').value = '10';
+                document.getElementById('eSingleScore').value = '5';
+                document.getElementById('eMultiCount').value = '5';
+                document.getElementById('eMultiScore').value = '5';
+                document.getElementById('eJudgeCount').value = '10';
+                document.getElementById('eJudgeScore').value = '3';
+                document.getElementById('eFillCount').value = '5';
+                document.getElementById('eFillScore').value = '5';
+                document.getElementById('eEssayCount').value = '2';
+                document.getElementById('eEssayScore').value = '10';
+                document.getElementById('eAllowedClasses').value = '';
+            }
+            
             document.getElementById('examModal').classList.add('active');
+        }
+
+        function editExam(id) {
+            openExamModal(id);
         }
 
         function saveExam() {
@@ -1708,6 +2018,7 @@
             const subject = document.getElementById('eSubject').value;
             const duration = parseInt(document.getElementById('eDuration').value);
             const passScore = parseInt(document.getElementById('ePassScore').value);
+            const editingId = document.getElementById('editingExamId').value;
 
             if (!name) {
                 alert('请输入试卷名称');
@@ -1715,40 +2026,57 @@
             }
 
             const config = {
-                single: parseInt(document.getElementById('eSingleCount').value),
-                singleScore: parseInt(document.getElementById('eSingleScore').value),
-                multi: parseInt(document.getElementById('eMultiCount').value),
-                multiScore: parseInt(document.getElementById('eMultiScore').value),
-                judge: parseInt(document.getElementById('eJudgeCount').value),
-                judgeScore: parseInt(document.getElementById('eJudgeScore').value),
-                fill: parseInt(document.getElementById('eFillCount').value),
-                fillScore: parseInt(document.getElementById('eFillScore').value),
-                essay: parseInt(document.getElementById('eEssayCount').value),
-                essayScore: parseInt(document.getElementById('eEssayScore').value)
+                single: parseInt(document.getElementById('eSingleCount').value) || 0,
+                singleScore: parseInt(document.getElementById('eSingleScore').value) || 0,
+                multi: parseInt(document.getElementById('eMultiCount').value) || 0,
+                multiScore: parseInt(document.getElementById('eMultiScore').value) || 0,
+                judge: parseInt(document.getElementById('eJudgeCount').value) || 0,
+                judgeScore: parseInt(document.getElementById('eJudgeScore').value) || 0,
+                fill: parseInt(document.getElementById('eFillCount').value) || 0,
+                fillScore: parseInt(document.getElementById('eFillScore').value) || 0,
+                essay: parseInt(document.getElementById('eEssayCount').value) || 0,
+                essayScore: parseInt(document.getElementById('eEssayScore').value) || 0
             };
 
             const allowedClasses = document.getElementById('eAllowedClasses').value.trim();
 
             let exams = JSON.parse(localStorage.getItem('exams') || '[]');
             
-            const exam = {
-                id: Date.now(),
-                name,
-                subject,
-                duration,
-                passScore,
-                config,
-                status: 'active',
-                allowedClasses,
-                createdBy: currentUser.username
-            };
+            if (editingId) {
+                // 编辑模式
+                const index = exams.findIndex(e => e.id === parseInt(editingId));
+                if (index !== -1) {
+                    exams[index] = {
+                        ...exams[index],
+                        name,
+                        subject,
+                        duration,
+                        passScore,
+                        config,
+                        allowedClasses
+                    };
+                }
+            } else {
+                // 创建模式
+                const exam = {
+                    id: Date.now(),
+                    name,
+                    subject,
+                    duration,
+                    passScore,
+                    config,
+                    status: 'active',
+                    allowedClasses,
+                    createdBy: currentUser.username
+                };
+                exams.push(exam);
+            }
 
-            exams.push(exam);
             localStorage.setItem('exams', JSON.stringify(exams));
             
             closeModal('examModal');
             loadExams();
-            alert('试卷创建成功！');
+            alert(editingId ? '试卷修改成功！' : '试卷创建成功！');
         }
 
         function deleteExam(id) {
@@ -1791,43 +2119,63 @@
                 results = results.filter(r => r.userName.toLowerCase().includes(search));
             }
 
-            // 统计
-            const totalStudents = users.filter(u => u.role === 'student').length;
-            const avgScore = results.length ? (results.reduce((sum, r) => sum + r.score, 0) / results.length).toFixed(1) : 0;
-            const passRate = results.length ? ((results.filter(r => {
+            // 计算统计数据（基于当前筛选）
+            const totalResults = results.length;
+            const avgScore = totalResults ? (results.reduce((sum, r) => sum + r.score, 0) / totalResults).toFixed(1) : 0;
+            const maxScore = totalResults ? Math.max(...results.map(r => r.score)) : 0;
+            const minScore = totalResults ? Math.min(...results.map(r => r.score)) : 0;
+            
+            // 计算及格率
+            let passCount = 0;
+            results.forEach(r => {
                 const exam = exams.find(e => e.id === r.examId);
-                return exam && r.score >= exam.passScore;
-            }).length / results.length) * 100).toFixed(1) : 0;
+                if (exam && r.score >= exam.passScore) {
+                    passCount++;
+                }
+            });
+            const passRate = totalResults ? ((passCount / totalResults) * 100).toFixed(1) : 0;
 
             document.getElementById('resultStats').innerHTML = `
                 <div class="stat-card">
-                    <div class="stat-value">${totalStudents}</div>
-                    <div class="stat-label">学生总数</div>
-                </div>
-                <div class="stat-card green">
-                    <div class="stat-value">${results.length}</div>
+                    <div class="stat-value">${totalResults}</div>
                     <div class="stat-label">考试记录</div>
                 </div>
-                <div class="stat-card orange">
+                <div class="stat-card green">
                     <div class="stat-value">${avgScore}</div>
                     <div class="stat-label">平均分</div>
                 </div>
-                <div class="stat-card green">
+                <div class="stat-card orange">
+                    <div class="stat-value">${maxScore}</div>
+                    <div class="stat-label">最高分</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-value">${minScore}</div>
+                    <div class="stat-label">最低分</div>
+                </div>
+                <div class="stat-card purple">
                     <div class="stat-value">${passRate}%</div>
                     <div class="stat-label">及格率</div>
                 </div>
             `;
 
-            // 表格
-            document.getElementById('resultsTable').innerHTML = results.map((r, index) => {
+            // 表格 - 按分数排序计算排名
+            const sortedResults = [...results].sort((a, b) => b.score - a.score);
+            
+            document.getElementById('resultsTable').innerHTML = results.map(r => {
                 const exam = exams.find(e => e.id === r.examId);
-                const rank = index + 1;
+                const totalScore = exam ? (exam.config.single * exam.config.singleScore + 
+                                   exam.config.multi * exam.config.multiScore +
+                                   exam.config.judge * exam.config.judgeScore +
+                                   exam.config.fill * exam.config.fillScore +
+                                   exam.config.essay * exam.config.essayScore) : 0;
+                const rank = sortedResults.findIndex(item => item.examId === r.examId && item.userId === r.userId && item.submitTime === r.submitTime) + 1;
                 return `
                     <tr>
                         <td>${r.userName}</td>
                         <td>${r.className || '-'}</td>
                         <td>${exam?.name || '-'}</td>
                         <td><strong>${r.score}</strong></td>
+                        <td>${totalScore}</td>
                         <td>第${rank}名</td>
                         <td>${r.timeUsed || '-'}</td>
                         <td>${new Date(r.submitTime).toLocaleString()}</td>
@@ -1870,6 +2218,8 @@
                         }
                     }]
                 });
+            } else {
+                document.getElementById('resultChart').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>暂无成绩数据</p></div>';
             }
         }
 
@@ -1901,9 +2251,10 @@
                 const statusText = myResult ? '已完成' : '未考试';
                 const btnText = myResult ? '查看成绩' : '开始考试';
                 const btnClass = myResult ? 'btn-success' : '';
+                const clickAction = myResult ? `viewExamResult(${e.id})` : `startExam(${e.id})`;
                 
                 return `
-                    <div class="card ${statusClass}" onclick="startExam(${e.id})">
+                    <div class="card ${statusClass}" onclick="${clickAction}">
                         <h3>${e.name}</h3>
                         <p>科目：${e.subject}</p>
                         <p>时长：${e.duration}分钟 | 总分：${totalScore}分 | 及格：${e.passScore}分</p>
@@ -1952,13 +2303,24 @@
                 </div>
             `;
 
+            // 按试卷计算排名
             document.getElementById('myResultsTable').innerHTML = results.map((r, index) => {
                 const exam = exams.find(e => e.id === r.examId);
+                const totalScore = exam ? (exam.config.single * exam.config.singleScore + 
+                                   exam.config.multi * exam.config.multiScore +
+                                   exam.config.judge * exam.config.judgeScore +
+                                   exam.config.fill * exam.config.fillScore +
+                                   exam.config.essay * exam.config.essayScore) : 0;
+                const examResults = results.filter(res => res.examId === r.examId);
+                const sortedExamResults = [...examResults].sort((a, b) => b.score - a.score);
+                const rank = sortedExamResults.findIndex(res => res.submitTime === r.submitTime) + 1;
+                
                 return `
                     <tr>
                         <td>${exam?.name || '-'}</td>
                         <td><strong>${r.score}</strong></td>
-                        <td>第${index + 1}名</td>
+                        <td>${totalScore}</td>
+                        <td>第${rank}名</td>
                         <td>${r.timeUsed || '-'}</td>
                         <td>${new Date(r.submitTime).toLocaleString()}</td>
                         <td>
@@ -1994,6 +2356,8 @@
                         itemStyle: { color: '#667eea' }
                     }]
                 });
+            } else {
+                document.getElementById('myChart').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>暂无成绩数据</p></div>';
             }
         }
 
@@ -2014,14 +2378,22 @@
                                exam.config.fill * exam.config.fillScore +
                                exam.config.essay * exam.config.essayScore;
             
+            // 计算等级
+            const percentage = (myResult.score / totalScore) * 100;
+            let grade = '不及格';
+            let gradeClass = 'fail';
+            if (percentage >= 90) { grade = '优秀'; gradeClass = 'excellent'; }
+            else if (percentage >= 80) { grade = '良好'; gradeClass = 'good'; }
+            else if (percentage >= 60) { grade = '及格'; gradeClass = 'pass'; }
+            
             document.getElementById('detailStats').innerHTML = `
                 <div class="stat-card">
-                    <div class="stat-value">${myResult.score}</div>
-                    <div class="stat-label">得分 / ${totalScore}</div>
+                    <div class="stat-value">${myResult.score}/${totalScore}</div>
+                    <div class="stat-label">得分 / 满分</div>
                 </div>
-                <div class="stat-card ${myResult.score >= exam.passScore ? 'green' : 'red'}">
-                    <div class="stat-value">${myResult.score >= exam.passScore ? '及格' : '不及格'}</div>
-                    <div class="stat-label">及格分：${exam.passScore}</div>
+                <div class="stat-card ${gradeClass === 'excellent' ? 'green' : gradeClass === 'good' ? 'purple' : gradeClass === 'pass' ? 'orange' : 'red'}">
+                    <div class="stat-value">${grade}</div>
+                    <div class="stat-label">等级（≥90优秀/≥80良好/≥60及格）</div>
                 </div>
                 <div class="stat-card orange">
                     <div class="stat-value">${myResult.timeUsed || '-'}</div>
@@ -2037,17 +2409,44 @@
                 'essay': '简答题'
             };
 
-            document.getElementById('detailQuestions').innerHTML = questions.map((q, i) => `
-                <div style="padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px; margin-bottom: 15px;">
-                    <div class="tag tag-primary">${typeNames[q.type]}</div>
-                    <div style="margin: 15px 0;">${i + 1}. ${q.content}</div>
-                    <div style="color: #666; font-size: 14px;">
+            document.getElementById('detailQuestions').innerHTML = questions.map((q, i) => {
+                let answerHtml = '';
+                if (q.type === 'essay') {
+                    // 简答题显示AI评分详情
+                    const aiDetail = q.aiScoreDetail || {};
+                    answerHtml = `
                         <div>你的答案：<strong>${q.userAnswer || '未答'}</strong></div>
                         <div>正确答案：<strong style="color: #2ed573;">${q.correctAnswer}</strong></div>
-                        <div>得分：<strong style="color: ${q.score > 0 ? '#2ed573' : '#f5365c'};">${q.score}分</strong></div>
+                        <div>得分：<strong style="color: ${q.score > 0 ? '#2ed573' : '#f5365c'};">${q.score}/${q.maxScore}</strong></div>
+                        <span class="tag tag-ai">🤖 AI智能评分</span>
+                        ${aiDetail.matchedKeywords ? `
+                            <div class="ai-score-detail">
+                                <div><strong>AI评分分析：</strong></div>
+                                <div>匹配关键词：${aiDetail.matchedKeywords.length}/${aiDetail.totalKeywords}个</div>
+                                ${aiDetail.matchedKeywords.map(k => `<span class="matched">✓ ${k}</span>`).join(' ')}
+                                ${aiDetail.partialMatches && aiDetail.partialMatches.length > 0 ? `<div>部分匹配：${aiDetail.partialMatches.map(k => `<span class="partial">≈ ${k}</span>`).join(' ')}</div>` : ''}
+                                ${aiDetail.unmatchedKeywords && aiDetail.unmatchedKeywords.length > 0 ? `<div>未匹配：${aiDetail.unmatchedKeywords.map(k => `<span class="unmatched">✗ ${k}</span>`).join(' ')}</div>` : ''}
+                            </div>
+                        ` : ''}
+                    `;
+                } else {
+                    answerHtml = `
+                        <div>你的答案：<strong>${q.userAnswer || '未答'}</strong></div>
+                        <div>正确答案：<strong style="color: #2ed573;">${q.correctAnswer}</strong></div>
+                        <div>得分：<strong style="color: ${q.score > 0 ? '#2ed573' : '#f5365c'};">${q.score}/${q.maxScore}</strong></div>
+                    `;
+                }
+                
+                return `
+                    <div style="padding: 20px; border: 1px solid #e1e1e1; border-radius: 10px; margin-bottom: 15px;">
+                        <div class="tag tag-primary">${typeNames[q.type]}</div>
+                        <div style="margin: 15px 0;">${i + 1}. ${q.content} <span class="question-score">(${q.maxScore}分)</span></div>
+                        <div style="color: #666; font-size: 14px;">
+                            ${answerHtml}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function goBackFromDetail() {
@@ -2068,9 +2467,9 @@
             const results = JSON.parse(localStorage.getItem('results') || '[]');
             const myResult = results.find(r => r.examId === examId && r.userId === currentUser.username);
             if (myResult) {
-                if (!confirm('您已参加过此考试，确定要重新考试吗？')) {
-                    return;
-                }
+                alert('您已完成此考试，请查看成绩！');
+                viewExamResult(examId);
+                return;
             }
 
             // 生成试卷
@@ -2089,6 +2488,7 @@
             examAnswers = {};
             examFlagged = {};
             cheatLogs = [];
+            cheatCount = 0;
             examStartTime = Date.now();
 
             // 显示考试信息
@@ -2105,6 +2505,7 @@
                 <div class="exam-info-item"><span>总分：</span><span>${totalScore}分</span></div>
                 <div class="exam-info-item"><span>及格分：</span><span>${exam.passScore}分</span></div>
                 <div class="exam-info-item"><span>题目数量：</span><span>${examQuestions.length}题</span></div>
+                <div class="exam-info-item" style="color: #f5365c;"><span>⚠️ 注意：</span><span>考试期间禁止切屏、复制粘贴，违者将被记录并可能自动交卷！</span></div>
                 <div style="margin-top: 15px;">
                     <button class="btn btn-success" onclick="beginExam()">开始考试</button>
                     <button class="btn btn-secondary" onclick="cancelExam()">返回</button>
@@ -2119,6 +2520,7 @@
             document.getElementById('examTimer').style.display = 'none';
             document.getElementById('questionPanel').style.display = 'none';
             document.getElementById('questionNav').style.display = 'none';
+            document.getElementById('examAntiCheatBar').classList.remove('active');
         }
 
         function beginExam() {
@@ -2126,9 +2528,13 @@
             document.getElementById('examTimer').style.display = 'block';
             document.getElementById('questionPanel').style.display = 'block';
             document.getElementById('questionNav').style.display = 'block';
+            document.getElementById('examAntiCheatBar').classList.add('active');
 
             document.getElementById('examTitle').textContent = examInProgress.name;
             document.getElementById('totalCount').textContent = examInProgress.questions.length;
+
+            // 更新防切屏显示
+            updateCheatDisplay();
 
             // 生成答题卡
             generateQuestionGrid();
@@ -2164,36 +2570,39 @@
 
         let currentQuestionIndex = 0;
 
+        // ========== 修改1: generateExam 函数按科目筛选题目 ==========
         function generateExam(questions, exam) {
             const examQuestions = [];
             const config = exam.config;
 
-            // 按题型分组
+            // 按科目和题型分组筛选
+            const subjectQuestions = questions.filter(q => q.subject === exam.subject);
+            
             const grouped = {
-                single: questions.filter(q => q.type === 'single'),
-                multiple: questions.filter(q => q.type === 'multiple'),
-                judge: questions.filter(q => q.type === 'judge'),
-                fill: questions.filter(q => q.type === 'fill'),
-                essay: questions.filter(q => q.type === 'essay')
+                single: subjectQuestions.filter(q => q.type === 'single'),
+                multiple: subjectQuestions.filter(q => q.type === 'multiple'),
+                judge: subjectQuestions.filter(q => q.type === 'judge'),
+                fill: subjectQuestions.filter(q => q.type === 'fill'),
+                essay: subjectQuestions.filter(q => q.type === 'essay')
             };
 
             // 随机抽取
             const shuffle = arr => arr.sort(() => Math.random() - 0.5);
             
-            const addQuestions = (type, count) => {
+            const addQuestions = (type, count, score) => {
                 const pool = shuffle([...grouped[type]]);
                 for (let i = 0; i < count && i < pool.length; i++) {
                     const q = { ...pool[i] };
-                    q.score = config[type + 'Score'];
+                    q.score = score;
                     examQuestions.push(q);
                 }
             };
 
-            addQuestions('single', config.single);
-            addQuestions('multiple', config.multi);
-            addQuestions('judge', config.judge);
-            addQuestions('fill', config.fill);
-            addQuestions('essay', config.essay);
+            addQuestions('single', config.single, config.singleScore);
+            addQuestions('multiple', config.multi, config.multiScore);
+            addQuestions('judge', config.judge, config.judgeScore);
+            addQuestions('fill', config.fill, config.fillScore);
+            addQuestions('essay', config.essay, config.essayScore);
 
             return examQuestions;
         }
@@ -2235,8 +2644,8 @@
                 'essay': '简答题'
             };
 
-            document.getElementById('questionType').textContent = typeNames[q.type] + ' (' + q.score + '分)';
-            document.getElementById('questionText').textContent = (index + 1) + '. ' + q.content;
+            document.getElementById('questionType').textContent = typeNames[q.type];
+            document.getElementById('questionText').innerHTML = (index + 1) + '. ' + q.content + ' <span class="question-score">(' + q.score + '分)</span>';
 
             const optionsContainer = document.getElementById('questionOptions');
             const fillInput = document.getElementById('fillBlankInput');
@@ -2389,6 +2798,7 @@
             }
         }
 
+        // ========== 交卷后成绩显示 - 修改为结果页面 ==========
         function submitExam() {
             clearInterval(examTimer);
             
@@ -2398,12 +2808,9 @@
             // 保存成绩
             const allResults = JSON.parse(localStorage.getItem('results') || '[]');
             
-            // 删除之前的成绩
-            const filtered = allResults.filter(r => !(r.examId === examInProgress.id && r.userId === currentUser.username));
-            
             const timeUsed = formatTimeUsed(Date.now() - examStartTime);
             
-            filtered.push({
+            const examResult = {
                 examId: examInProgress.id,
                 userId: currentUser.username,
                 userName: currentUser.name || currentUser.username,
@@ -2413,32 +2820,214 @@
                 submitTime: new Date().toISOString(),
                 cheatLogs: [...cheatLogs],
                 details: results.details
-            });
+            };
             
-            localStorage.setItem('results', JSON.stringify(filtered));
+            allResults.push(examResult);
+            localStorage.setItem('results', JSON.stringify(allResults));
             
-            // 显示成绩
-            alert(`考试完成！\n您的得分：${results.totalScore}分\n用时：${timeUsed}`);
+            currentExamResult = {
+                ...examResult,
+                totalScore: results.totalScore,
+                passScore: examInProgress.passScore,
+                examName: examInProgress.name,
+                gradeDetails: results.gradeDetails
+            };
             
             examInProgress = null;
             
+            // 显示成绩结果页面
+            showResultPage();
+        }
+
+        function showResultPage() {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('resultPage').classList.add('active');
+            
+            const result = currentExamResult;
+            const percentage = (result.score / result.totalScore) * 100;
+            
+            // 计算等级
+            let grade = '不及格';
+            let gradeClass = 'fail';
+            let gradeEmoji = '😢';
+            if (percentage >= 90) { grade = '优秀'; gradeClass = 'excellent'; gradeEmoji = '🏆'; }
+            else if (percentage >= 80) { grade = '良好'; gradeClass = 'good'; gradeEmoji = '👍'; }
+            else if (percentage >= 60) { grade = '及格'; gradeClass = 'pass'; gradeEmoji = '😊'; }
+            
+            const passed = percentage >= (result.passScore / result.totalScore) * 100;
+            
+            document.getElementById('resultSummary').innerHTML = `
+                <div class="result-grade ${gradeClass}">${gradeEmoji}</div>
+                <div class="result-grade ${gradeClass}">${grade}</div>
+                <div class="result-message">
+                    ${passed ? '恭喜您通过了考试！' : '很遗憾，您未达到及格线，请继续努力！'}
+                </div>
+                <div style="margin-top: 20px; color: #666;">
+                    得分：<strong style="font-size: 24px; color: #667eea;">${result.score}</strong> / ${result.totalScore}分
+                    <br>
+                    <span style="font-size: 14px;">及格分：${result.passScore}分 | 用时：${result.timeUsed}</span>
+                </div>
+                ${cheatLogs.length > 0 ? `<div style="margin-top: 15px; color: #f5365c; font-size: 14px;">⚠️ 检测到${cheatLogs.length}次异常行为</div>` : ''}
+                <div style="margin-top: 30px;">
+                    <button class="result-detail-btn" onclick="toggleResultDetails()">查看详细成绩</button>
+                </div>
+            `;
+            
+            // 生成详细成绩
+            const typeNames = {
+                'single': '单选题',
+                'multiple': '多选题',
+                'judge': '判断题',
+                'fill': '填空题',
+                'essay': '简答题'
+            };
+            
+            document.getElementById('scoreDetails').innerHTML = result.details.map((q, i) => {
+                let answerHtml = '';
+                if (q.type === 'essay') {
+                    const aiDetail = q.aiScoreDetail || {};
+                    answerHtml = `
+                        <div>你的答案：<strong>${q.userAnswer || '未答'}</strong></div>
+                        <div>正确答案：<strong style="color: #2ed573;">${q.correctAnswer}</strong></div>
+                        <div>得分：<strong style="color: ${q.score > 0 ? '#2ed573' : '#f5365c'};">${q.score}/${q.maxScore}</strong></div>
+                        <span class="tag tag-ai">🤖 AI智能评分</span>
+                        ${aiDetail.matchedKeywords ? `
+                            <div class="ai-score-detail">
+                                <div><strong>AI评分分析：</strong></div>
+                                <div>匹配关键词：${aiDetail.matchedKeywords.length}/${aiDetail.totalKeywords}个</div>
+                                ${aiDetail.matchedKeywords.map(k => `<span class="matched">✓ ${k}</span>`).join(' ')}
+                                ${aiDetail.partialMatches && aiDetail.partialMatches.length > 0 ? `<div>部分匹配：${aiDetail.partialMatches.map(k => `<span class="partial">≈ ${k}</span>`).join(' ')}</div>` : ''}
+                                ${aiDetail.unmatchedKeywords && aiDetail.unmatchedKeywords.length > 0 ? `<div>未匹配：${aiDetail.unmatchedKeywords.map(k => `<span class="unmatched">✗ ${k}</span>`).join(' ')}</div>` : ''}
+                            </div>
+                        ` : ''}
+                    `;
+                } else {
+                    answerHtml = `
+                        <div>你的答案：<strong>${q.userAnswer || '未答'}</strong></div>
+                        <div>正确答案：<strong style="color: #2ed573;">${q.correctAnswer}</strong></div>
+                        <div>得分：<strong style="color: ${q.score > 0 ? '#2ed573' : '#f5365c'};">${q.score}/${q.maxScore}</strong></div>
+                    `;
+                }
+                
+                return `
+                    <div style="padding: 15px; border: 1px solid #e1e1e1; border-radius: 8px; margin-bottom: 10px;">
+                        <span class="tag tag-primary">${typeNames[q.type]}</span>
+                        <div style="margin: 10px 0;">${i + 1}. ${q.content} <span class="question-score">(${q.maxScore}分)</span></div>
+                        <div style="color: #666; font-size: 14px;">
+                            ${answerHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('scoreDetailCard').style.display = 'none';
+        }
+
+        function toggleResultDetails() {
+            const detailCard = document.getElementById('scoreDetailCard');
+            if (detailCard.style.display === 'none') {
+                detailCard.style.display = 'block';
+            } else {
+                detailCard.style.display = 'none';
+            }
+        }
+
+        function backFromResult() {
             if (currentUser.role === 'student') {
-                loadMyResults();
-                showPage('myResults');
+                loadExamCenter();
+                showPage('examCenter');
             } else {
                 loadResults();
                 showPage('results');
             }
         }
 
+        function viewExamResult(examId) {
+            const results = JSON.parse(localStorage.getItem('results') || '[]');
+            const myResult = results.find(r => r.examId === examId && r.userId === currentUser.username);
+            
+            if (!myResult) return;
+            
+            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+            const exam = exams.find(e => e.id === examId);
+            const totalScore = exam ? (exam.config.single * exam.config.singleScore + 
+                               exam.config.multi * exam.config.multiScore +
+                               exam.config.judge * exam.config.judgeScore +
+                               exam.config.fill * exam.config.fillScore +
+                               exam.config.essay * exam.config.essayScore) : 0;
+            
+            currentExamResult = {
+                ...myResult,
+                totalScore: totalScore,
+                passScore: exam?.passScore || 60,
+                examName: exam?.name || '考试',
+                gradeDetails: myResult.details
+            };
+            
+            showResultPage();
+        }
+
+        // ========== 修改7: AI智能评分 - 支持同义词和部分匹配 ==========
+        // 同义词匹配函数
+        function getSynonyms(word) {
+            const synonyms = [];
+            // 检查字典中是否有这个词的同义词
+            if (synonymDict[word]) {
+                synonyms.push(...synonymDict[word]);
+            }
+            // 检查这个词是否是其他词的同义词
+            for (const key in synonymDict) {
+                if (synonymDict[key].includes(word)) {
+                    synonyms.push(key);
+                }
+            }
+            return synonyms;
+        }
+
+        // 检查关键词是否匹配（支持同义词和部分匹配）
+        function checkKeywordMatch(keyword, text) {
+            const textLower = text.toLowerCase();
+            const keywordLower = keyword.toLowerCase();
+            
+            // 精确包含
+            if (textLower.includes(keywordLower)) {
+                return { matched: true, type: 'exact' };
+            }
+            
+            // 同义词匹配
+            const synonyms = getSynonyms(keywordLower);
+            for (const syn of synonyms) {
+                if (textLower.includes(syn.toLowerCase())) {
+                    return { matched: true, type: 'synonym', matchedWord: syn };
+                }
+            }
+            
+            // 部分匹配（关键词长度大于3时才检查部分匹配）
+            if (keywordLower.length >= 4) {
+                const partialLength = Math.floor(keywordLower.length * 0.6);
+                for (let i = partialLength; i <= keywordLower.length; i++) {
+                    for (let j = 0; j <= keywordLower.length - i; j++) {
+                        const partial = keywordLower.substring(j, j + i);
+                        if (partial.length >= 3 && textLower.includes(partial)) {
+                            return { matched: true, type: 'partial', matchedWord: partial };
+                        }
+                    }
+                }
+            }
+            
+            return { matched: false, type: 'none' };
+        }
+
         function autoGrade() {
             let totalScore = 0;
             const details = [];
+            const gradeDetails = [];
 
             examInProgress.questions.forEach((q, i) => {
                 const userAnswer = examAnswers[i] || '';
                 let score = 0;
                 let correctAnswer = '';
+                let aiScoreDetail = null;
 
                 if (q.type === 'single' || q.type === 'judge') {
                     correctAnswer = q.answer;
@@ -2460,16 +3049,43 @@
                     }
                 } else if (q.type === 'essay') {
                     correctAnswer = q.answer;
-                    // 简答题：关键词匹配
+                    // 简答题：AI智能评分
                     const keywords = q.answer.split(/[,，]/).map(k => k.trim()).filter(k => k);
                     const userText = userAnswer.toLowerCase();
-                    let matchCount = 0;
+                    
+                    const matchedKeywords = [];
+                    const partialMatches = [];
+                    const unmatchedKeywords = [];
+                    
                     keywords.forEach(k => {
-                        if (userText.includes(k.toLowerCase())) {
-                            matchCount++;
+                        const matchResult = checkKeywordMatch(k, userText);
+                        if (matchResult.matched) {
+                            if (matchResult.type === 'exact') {
+                                matchedKeywords.push(k);
+                            } else {
+                                partialMatches.push(k + (matchResult.matchedWord ? ` (≈${matchResult.matchedWord})` : ''));
+                            }
+                        } else {
+                            unmatchedKeywords.push(k);
                         }
                     });
-                    score = Math.round((matchCount / keywords.length) * q.score);
+                    
+                    // 计算得分：精确匹配给全分，部分匹配给一半分数
+                    const exactWeight = 1.0;
+                    const partialWeight = 0.5;
+                    
+                    const exactScore = (matchedKeywords.length / keywords.length) * q.score * exactWeight;
+                    const partialScore = (partialMatches.length / keywords.length) * q.score * partialWeight;
+                    score = Math.round(exactScore + partialScore);
+                    
+                    // AI评分详情
+                    aiScoreDetail = {
+                        matchedKeywords,
+                        partialMatches,
+                        unmatchedKeywords,
+                        totalKeywords: keywords.length,
+                        matchType: 'ai_smart'
+                    };
                 }
 
                 totalScore += score;
@@ -2479,11 +3095,14 @@
                     userAnswer: userAnswer,
                     correctAnswer: correctAnswer,
                     score: score,
-                    maxScore: q.score
+                    maxScore: q.score,
+                    aiScoreDetail: aiScoreDetail
                 });
+                
+                gradeDetails.push(details[details.length - 1]);
             });
 
-            return { totalScore, details };
+            return { totalScore, details, gradeDetails };
         }
 
         function formatTimeUsed(ms) {
@@ -2493,12 +3112,19 @@
             return `${mins}分${secs}秒`;
         }
 
-        // ========== 防作弊功能 ==========
+        // ========== 防作弊功能 - 增强版 ==========
         function setupAntiCheat() {
             // 切屏检测
             document.addEventListener('visibilitychange', function() {
                 if (document.hidden && examInProgress) {
                     logCheat('切换到其他标签页/窗口');
+                }
+            });
+
+            // 窗口失焦检测
+            window.addEventListener('blur', function() {
+                if (examInProgress) {
+                    logCheat('窗口失去焦点');
                 }
             });
 
@@ -2536,6 +3162,10 @@
                         e.preventDefault();
                         logCheat('尝试按F5刷新');
                     }
+                    if (e.key === 'PrintScreen') {
+                        e.preventDefault();
+                        logCheat('尝试截屏');
+                    }
                 }
             });
         }
@@ -2543,14 +3173,33 @@
         function logCheat(action) {
             const timestamp = new Date().toLocaleString();
             cheatLogs.push({ action, timestamp });
+            cheatCount++;
             
             // 显示警告
             const alert = document.getElementById('antiCheatAlert');
-            alert.textContent = '⚠️ ' + action + '，已记录！';
+            alert.textContent = '⚠️ ' + action + '，已记录！剩余警告次数：' + (MAX_CHEAT_COUNT - cheatCount);
             alert.style.display = 'block';
             setTimeout(() => {
                 alert.style.display = 'none';
             }, 3000);
+            
+            // 更新防切屏显示
+            updateCheatDisplay();
+            
+            // 检查是否超过次数限制
+            if (cheatCount >= MAX_CHEAT_COUNT) {
+                alert('您已超过最大警告次数，系统将自动交卷！');
+                setTimeout(() => {
+                    submitExam();
+                }, 1000);
+            }
+        }
+
+        function updateCheatDisplay() {
+            document.getElementById('cheatCountDisplay').textContent = `${cheatCount}/${MAX_CHEAT_COUNT}`;
+            document.getElementById('cheatWarningsList').innerHTML = cheatLogs.slice(-5).map(log => 
+                `<span class="cheat-warning-item">${log.action}</span>`
+            ).join('');
         }
 
         // ========== 模态框 ==========
