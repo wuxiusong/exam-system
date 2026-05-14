@@ -959,12 +959,15 @@
                 <button class="nav-tab" onclick="showPage('questions')">📝 题库管理</button>
                 <button class="nav-tab" onclick="showPage('exams')">📋 试卷管理</button>
                 <button class="nav-tab" onclick="showPage('results')">📈 成绩管理</button>
+                <button class="nav-tab" onclick="showPage('dataScreen')">📊 数据大屏</button>
             </div>
 
             <!-- 学生端导航 -->
             <div class="nav-tabs" id="studentNav" style="display: none;">
                 <button class="nav-tab active" onclick="showPage('examCenter')">📚 考试中心</button>
                 <button class="nav-tab" onclick="showPage('myResults')">📊 我的成绩</button>
+                <button class="nav-tab" onclick="showPage('wrongBook')">📝 错题本</button>
+                <button class="nav-tab" onclick="showPage('randomPractice')">🎯 随机练习</button>
             </div>
 
             <!-- 控制台页面 -->
@@ -1163,6 +1166,88 @@
                 <div class="stats-grid" id="detailStats"></div>
                 <div id="detailQuestions"></div>
             </div>
+
+            <!-- 错题本页面 -->
+            <div class="page" id="wrongBook">
+                <h3 class="page-title">📝 错题本</h3>
+                <div class="stats-grid" id="wrongBookStats"></div>
+                <div id="wrongBookFilter" style="margin-bottom:15px;display:flex;gap:10px;align-items:center;">
+                    <label>筛选科目：</label>
+                    <select id="wrongSubjectFilter" onchange="loadWrongBook()">
+                        <option value="">全部科目</option>
+                        <option value="数学">数学</option>
+                        <option value="语文">语文</option>
+                        <option value="英语">英语</option>
+                        <option value="物理">物理</option>
+                        <option value="化学">化学</option>
+                    </select>
+                </div>
+                <div id="wrongBookList"></div>
+            </div>
+
+            <!-- 随机练习页面 -->
+            <div class="page" id="randomPractice">
+                <h3 class="page-title">🎯 随机练习</h3>
+                <div id="practiceSetup">
+                    <p style="color:#888;margin-bottom:20px;">从题库随机抽题练习，不计入正式成绩，不限时间。</p>
+                    <div class="card-grid card-grid-2" style="margin-bottom:20px;">
+                        <div class="form-group">
+                            <label>选择科目</label>
+                            <select id="practiceSubject">
+                                <option value="">全部科目</option>
+                                <option value="数学">数学</option>
+                                <option value="语文">语文</option>
+                                <option value="英语">英语</option>
+                                <option value="物理">物理</option>
+                                <option value="化学">化学</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>选择题型</label>
+                            <select id="practiceType">
+                                <option value="">全部题型</option>
+                                <option value="single">单选题</option>
+                                <option value="multiple">多选题</option>
+                                <option value="judge">判断题</option>
+                                <option value="fill">填空题</option>
+                                <option value="essay">简答题</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>题目数量</label>
+                            <input type="number" id="practiceCount" value="10" min="1" max="50">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="startPractice()" style="width:auto;padding:12px 40px;">🎯 开始练习</button>
+                </div>
+                <div id="practiceArea" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <h3 id="practiceTitle">练习中</h3>
+                        <div>
+                            <span id="practiceProgress" style="color:#667eea;font-weight:bold;"></span>
+                            <button class="btn btn-small btn-success" onclick="submitPractice()" style="margin-left:15px;">交卷</button>
+                            <button class="btn btn-small btn-secondary" onclick="cancelPractice()" style="margin-left:5px;">退出</button>
+                        </div>
+                    </div>
+                    <div id="practiceQuestions"></div>
+                </div>
+                <div id="practiceResult" style="display:none;">
+                    <div class="stats-grid" id="practiceStats"></div>
+                    <div id="practiceDetails"></div>
+                    <button class="btn" onclick="resetPractice()" style="margin-top:20px;width:auto;padding:12px 30px;">再练一次</button>
+                </div>
+            </div>
+
+            <!-- 数据大屏页面 -->
+            <div class="page" id="dataScreen">
+                <h3 class="page-title">📊 考试数据大屏</h3>
+                <div class="stats-grid" id="dataScreenStats"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">
+                    <div class="chart-container" id="subjectChart"></div>
+                    <div class="chart-container" id="gradeDistChart"></div>
+                </div>
+                <div class="chart-container" id="trendChart" style="margin-top:20px;"></div>
+            </div>
         </div>
     </div>
 
@@ -1342,6 +1427,11 @@
                 <label>开放班级（留空表示全部可考）</label>
                 <input type="text" id="eAllowedClasses" placeholder="如：计算机1班,计算机2班">
             </div>
+            <div style="background:#f0f4ff;border-radius:10px;padding:15px;margin-bottom:15px;text-align:center;">
+                <div style="font-size:14px;color:#666;margin-bottom:5px;">自动计算总分</div>
+                <div id="examTotalScore" style="font-size:28px;font-weight:bold;color:#667eea;">0分</div>
+                <div id="examScoreWarning" style="font-size:12px;color:#f5365c;display:none;margin-top:5px;"></div>
+            </div>
             <button class="btn" id="saveExamBtn" onclick="saveExam()">创建试卷</button>
         </div>
     </div>
@@ -1505,6 +1595,12 @@
 
         // ========== 认证功能 ==========
         function setupEventListeners() {
+            // 试卷配置实时计算总分
+            ['eSingleCount','eSingleScore','eMultiCount','eMultiScore','eJudgeCount','eJudgeScore','eFillCount','eFillScore','eEssayCount','eEssayScore'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', updateExamTotalScore);
+            });
+
             // 角色切换
             document.querySelectorAll('.role-toggle button').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -1736,6 +1832,47 @@
                 case 'myResults':
                     loadMyResults();
                     break;
+                case 'wrongBook':
+                    loadWrongBook();
+                    break;
+                case 'randomPractice':
+                    resetPractice();
+                    break;
+                case 'dataScreen':
+                    loadDataScreen();
+                    break;
+            }
+        }
+
+        function calcExamTotalScore(config) {
+            return config.single * config.singleScore +
+                   config.multi * config.multiScore +
+                   config.judge * config.judgeScore +
+                   config.fill * config.fillScore +
+                   config.essay * config.essayScore;
+        }
+
+        function updateExamTotalScore() {
+            const config = {
+                single: parseInt(document.getElementById('eSingleCount').value) || 0,
+                singleScore: parseInt(document.getElementById('eSingleScore').value) || 0,
+                multi: parseInt(document.getElementById('eMultiCount').value) || 0,
+                multiScore: parseInt(document.getElementById('eMultiScore').value) || 0,
+                judge: parseInt(document.getElementById('eJudgeCount').value) || 0,
+                judgeScore: parseInt(document.getElementById('eJudgeScore').value) || 0,
+                fill: parseInt(document.getElementById('eFillCount').value) || 0,
+                fillScore: parseInt(document.getElementById('eFillScore').value) || 0,
+                essay: parseInt(document.getElementById('eEssayCount').value) || 0,
+                essayScore: parseInt(document.getElementById('eEssayScore').value) || 0
+            };
+            const total = calcExamTotalScore(config);
+            document.getElementById('examTotalScore').textContent = total + '分';
+            const warning = document.getElementById('examScoreWarning');
+            if (total <= 0) {
+                warning.textContent = '总分不能为0';
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
             }
         }
 
@@ -1745,8 +1882,11 @@
                 'questions': '题库管理',
                 'exams': '试卷管理',
                 'results': '成绩管理',
+                'dataScreen': '数据大屏',
                 'examCenter': '考试中心',
-                'myResults': '我的成绩'
+                'myResults': '我的成绩',
+                'wrongBook': '错题本',
+                'randomPractice': '随机练习'
             };
             return titles[page] || '';
         }
@@ -2135,6 +2275,16 @@
                 essay: parseInt(document.getElementById('eEssayCount').value) || 0,
                 essayScore: parseInt(document.getElementById('eEssayScore').value) || 0
             };
+
+            const totalScore = calcExamTotalScore(config);
+            if (totalScore <= 0) {
+                alert('试卷总分不能为0，请配置题型和分值');
+                return;
+            }
+            if (passScore > totalScore) {
+                alert(`及格分(${passScore})不能大于总分(${totalScore})`);
+                return;
+            }
 
             const allowedClasses = document.getElementById('eAllowedClasses').value.trim();
 
@@ -2915,6 +3065,14 @@
             // 评分
             const results = autoGrade();
             
+            // 保存错题到错题本
+            results.details.forEach(d => {
+                if (d.score < d.maxScore) {
+                    const q = examInProgress.questions.find(eq => eq.content === d.content);
+                    if (q) addWrongQuestion(q, d.userAnswer, examInProgress.name);
+                }
+            });
+            
             // 保存成绩
             const allResults = JSON.parse(localStorage.getItem('results') || '[]');
             
@@ -3193,28 +3351,27 @@
                 let aiScoreDetail = null;
 
                 if (q.type === 'single' || q.type === 'judge') {
+                    // 严格评分：必须完全匹配
                     correctAnswer = q.answer;
-                    if (userAnswer === q.answer) {
-                        score = q.score;
-                    }
+                    score = (userAnswer === q.answer) ? q.score : 0;
                 } else if (q.type === 'multiple') {
+                    // 严格评分：必须完全匹配（顺序无关），多选少选都0分
                     correctAnswer = q.answer;
                     const userSorted = (userAnswer || '').split('').sort().join('');
                     const correctSorted = q.answer.split('').sort().join('');
-                    if (userSorted === correctSorted) {
-                        score = q.score;
-                    }
+                    score = (userSorted === correctSorted) ? q.score : 0;
                 } else if (q.type === 'fill') {
+                    // 填空题严格评分：支持|分隔多个正确答案，答到任一即算对
                     correctAnswer = q.answer;
-                    // 填空题：包含关键词即得分
-                    if (userAnswer.toLowerCase().includes(q.answer.toLowerCase())) {
-                        score = q.score;
-                    }
+                    const userTrimmed = userAnswer.trim();
+                    const acceptedAnswers = q.answer.split('|').map(a => a.trim()).filter(a => a);
+                    const isCorrect = acceptedAnswers.some(a => userTrimmed === a || userTrimmed.toLowerCase() === a.toLowerCase());
+                    score = isCorrect ? q.score : 0;
                 } else if (q.type === 'essay') {
                     correctAnswer = q.answer || '';
                     const userText = userAnswer.trim();
                     
-                    // 使用采分点评分
+                    // AI采分点评分
                     if (q.scoringPoints && q.scoringPoints.length > 0) {
                         let totalEarned = 0;
                         const pointResults = [];
@@ -3228,7 +3385,6 @@
                                 matchedKeyword: ''
                             };
                             
-                            // 检查学生答案是否包含该采分点的任一关键词
                             for (const kw of sp.keywords) {
                                 if (kw && userText.includes(kw)) {
                                     pointResult.matched = true;
@@ -3244,7 +3400,6 @@
                         
                         score = totalEarned;
                         
-                        // AI评分详情
                         aiScoreDetail = {
                             type: 'scoring_points',
                             pointResults: pointResults,
@@ -3252,7 +3407,7 @@
                             earnedPoints: totalEarned
                         };
                     } else {
-                        // 旧格式兼容：没有采分点时，按关键词匹配
+                        // 旧格式兼容
                         const keywords = (q.answer || '').split(/[,，]/).map(k => k.trim()).filter(k => k);
                         let matched = 0;
                         keywords.forEach(k => {
@@ -3395,6 +3550,291 @@
                 }
             });
         });
+
+        // ========== 错题本功能 ==========
+        function getWrongBook() {
+            return JSON.parse(localStorage.getItem('wrongBook_' + currentUser.username) || '[]');
+        }
+        function saveWrongBook(book) {
+            localStorage.setItem('wrongBook_' + currentUser.username, JSON.stringify(book));
+        }
+        function addWrongQuestion(q, userAnswer, examName) {
+            const book = getWrongBook();
+            // 去重：同一题不重复添加
+            if (!book.find(w => w.id === q.id)) {
+                book.push({
+                    id: q.id,
+                    type: q.type,
+                    subject: q.subject || '',
+                    content: q.content,
+                    options: q.options || null,
+                    answer: q.answer,
+                    userAnswer: userAnswer,
+                    examName: examName || '',
+                    addedAt: new Date().toISOString()
+                });
+                saveWrongBook(book);
+            }
+        }
+
+        function loadWrongBook() {
+            const book = getWrongBook();
+            const subjectFilter = document.getElementById('wrongSubjectFilter')?.value || '';
+            const filtered = subjectFilter ? book.filter(w => w.subject === subjectFilter) : book;
+            
+            const subjects = [...new Set(book.map(w => w.subject).filter(Boolean))];
+            const total = book.length;
+
+            document.getElementById('wrongBookStats').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">总错题数</div></div>
+                ${subjects.map(s => `<div class="stat-card orange"><div class="stat-value">${book.filter(w=>w.subject===s).length}</div><div class="stat-label">${s}错题</div></div>`).join('')}
+            `;
+
+            const typeNames = {'single':'单选题','multiple':'多选题','judge':'判断题','fill':'填空题','essay':'简答题'};
+            
+            if (filtered.length === 0) {
+                document.getElementById('wrongBookList').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎉</div><p>没有错题，继续保持！</p></div>';
+                return;
+            }
+
+            document.getElementById('wrongBookList').innerHTML = filtered.map((w, i) => `
+                <div style="border:1px solid #e1e1e1;border-radius:10px;padding:20px;margin-bottom:15px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <span class="tag tag-primary">${typeNames[w.type]||w.type}</span>
+                        <span style="color:#888;font-size:12px;">${w.examName ? '来自：'+w.examName : ''}</span>
+                    </div>
+                    <div style="margin-bottom:10px;">${w.content}</div>
+                    ${w.options ? `<div style="color:#666;font-size:14px;">${Object.entries(w.options).filter(([k,v])=>v).map(([k,v])=>`<div>${k}. ${v}</div>`).join('')}</div>` : ''}
+                    <div style="margin-top:10px;padding:10px;background:#fff0f0;border-radius:6px;">
+                        <div>❌ 你的答案：<strong style="color:#f5365c;">${w.userAnswer || '未答'}</strong></div>
+                        <div>✅ 正确答案：<strong style="color:#2ed573;">${w.answer}</strong></div>
+                    </div>
+                    <button class="btn btn-small btn-secondary" onclick="removeWrongQuestion(${w.id})" style="margin-top:10px;">已掌握，移除</button>
+                </div>
+            `).join('');
+        }
+
+        function removeWrongQuestion(id) {
+            let book = getWrongBook();
+            book = book.filter(w => w.id !== id);
+            saveWrongBook(book);
+            loadWrongBook();
+        }
+
+        // ========== 随机练习功能 ==========
+        let practiceQuestions = [];
+        let practiceAnswers = {};
+
+        function startPractice() {
+            const subject = document.getElementById('practiceSubject').value;
+            const type = document.getElementById('practiceType').value;
+            const count = parseInt(document.getElementById('practiceCount').value) || 10;
+
+            let questions = JSON.parse(localStorage.getItem('questions') || '[]');
+            if (subject) questions = questions.filter(q => q.subject === subject);
+            if (type) questions = questions.filter(q => q.type === type);
+
+            // 打乱
+            questions.sort(() => Math.random() - 0.5);
+            practiceQuestions = questions.slice(0, count);
+            practiceAnswers = {};
+
+            if (practiceQuestions.length === 0) {
+                alert('题库中没有符合条件的题目');
+                return;
+            }
+
+            document.getElementById('practiceSetup').style.display = 'none';
+            document.getElementById('practiceArea').style.display = 'block';
+            document.getElementById('practiceResult').style.display = 'none';
+
+            renderPracticeQuestions();
+        }
+
+        function renderPracticeQuestions() {
+            const typeNames = {'single':'单选题','multiple':'多选题','judge':'判断题','fill':'填空题','essay':'简答题'};
+            document.getElementById('practiceTitle').textContent = `随机练习 (${practiceQuestions.length}题)`;
+            document.getElementById('practiceProgress').textContent = `已答 ${Object.keys(practiceAnswers).filter(k=>practiceAnswers[k]).length}/${practiceQuestions.length}`;
+
+            document.getElementById('practiceQuestions').innerHTML = practiceQuestions.map((q, i) => {
+                let answerArea = '';
+                if (q.type === 'single' || q.type === 'judge') {
+                    answerArea = Object.entries(q.options||{}).filter(([k,v])=>v).map(([k,v]) => `
+                        <label style="display:block;padding:8px;margin:4px 0;border:1px solid #e1e1e1;border-radius:8px;cursor:pointer;">
+                            <input type="radio" name="p_${i}" value="${k}" ${practiceAnswers[i]===k?'checked':''} onchange="practiceAnswers[${i}]='${k}'"> ${k}. ${v}
+                        </label>
+                    `).join('');
+                } else if (q.type === 'multiple') {
+                    answerArea = Object.entries(q.options||{}).filter(([k,v])=>v).map(([k,v]) => `
+                        <label style="display:block;padding:8px;margin:4px 0;border:1px solid #e1e1e1;border-radius:8px;cursor:pointer;">
+                            <input type="checkbox" value="${k}" onchange="updatePracticeMulti(${i})"> ${k}. ${v}
+                        </label>
+                    `).join('');
+                } else if (q.type === 'fill') {
+                    answerArea = `<input type="text" class="fill-blank" placeholder="请输入答案" value="${practiceAnswers[i]||''}" oninput="practiceAnswers[${i}]=this.value" style="width:100%;padding:10px;border:2px solid #e1e1e1;border-radius:8px;">`;
+                } else if (q.type === 'essay') {
+                    answerArea = `<textarea placeholder="请输入答案" oninput="practiceAnswers[${i}]=this.value" style="width:100%;padding:10px;border:2px solid #e1e1e1;border-radius:8px;min-height:80px;">${practiceAnswers[i]||''}</textarea>`;
+                }
+                return `
+                    <div style="border:1px solid #e1e1e1;border-radius:10px;padding:20px;margin-bottom:15px;">
+                        <div style="display:flex;gap:8px;margin-bottom:10px;">
+                            <span class="tag tag-primary">${typeNames[q.type]}</span>
+                            <span style="color:#888;">(${q.score||0}分)</span>
+                        </div>
+                        <div style="margin-bottom:12px;">${i+1}. ${q.content}</div>
+                        ${answerArea}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updatePracticeMulti(index) {
+            const checks = document.querySelectorAll(`input[name="p_${index}"]`) || 
+                document.querySelectorAll(`#practiceQuestions > div:nth-child(${index+1}) input[type="checkbox"]`);
+            let vals = [];
+            checks.forEach(c => { if(c.checked) vals.push(c.value); });
+            practiceAnswers[index] = vals.sort().join('');
+        }
+
+        function submitPractice() {
+            const unanswered = practiceQuestions.length - Object.keys(practiceAnswers).filter(k => practiceAnswers[k]).length;
+            if (unanswered > 0 && !confirm(`还有${unanswered}题未答，确定提交吗？`)) return;
+
+            let correct = 0, wrong = 0;
+            const typeNames = {'single':'单选题','multiple':'多选题','judge':'判断题','fill':'填空题','essay':'简答题'};
+            
+            document.getElementById('practiceArea').style.display = 'none';
+            document.getElementById('practiceResult').style.display = 'block';
+
+            const details = practiceQuestions.map((q, i) => {
+                const ua = practiceAnswers[i] || '';
+                let isCorrect = false;
+                if (q.type === 'single' || q.type === 'judge') {
+                    isCorrect = ua === q.answer;
+                } else if (q.type === 'multiple') {
+                    isCorrect = ua.split('').sort().join('') === q.answer.split('').sort().join('');
+                } else if (q.type === 'fill') {
+                    const accepted = q.answer.split('|').map(a=>a.trim());
+                    isCorrect = accepted.some(a => ua.trim() === a || ua.trim().toLowerCase() === a.toLowerCase());
+                }
+                if (isCorrect) correct++; else wrong++;
+                return { q, ua, isCorrect };
+            });
+
+            document.getElementById('practiceStats').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${practiceQuestions.length}</div><div class="stat-label">总题数</div></div>
+                <div class="stat-card green"><div class="stat-value">${correct}</div><div class="stat-label">正确</div></div>
+                <div class="stat-card red"><div class="stat-value">${wrong}</div><div class="stat-label">错误</div></div>
+                <div class="stat-card orange"><div class="stat-value">${Math.round(correct/practiceQuestions.length*100)}%</div><div class="stat-label">正确率</div></div>
+            `;
+
+            document.getElementById('practiceDetails').innerHTML = details.map((d, i) => `
+                <div style="border:1px solid #e1e1e1;border-radius:10px;padding:20px;margin-bottom:15px;border-left:4px solid ${d.isCorrect?'#2ed573':'#f5365c'};">
+                    <div style="display:flex;gap:8px;margin-bottom:10px;">
+                        <span class="tag ${d.isCorrect?'tag-success':'tag-danger'}">${d.isCorrect?'✅ 正确':'❌ 错误'}</span>
+                        <span class="tag tag-primary">${typeNames[d.q.type]}</span>
+                    </div>
+                    <div style="margin-bottom:8px;">${i+1}. ${d.q.content}</div>
+                    <div>你的答案：<strong style="color:${d.isCorrect?'#2ed573':'#f5365c'}">${d.ua||'未答'}</strong></div>
+                    <div>正确答案：<strong style="color:#2ed573">${d.q.answer}</strong></div>
+                </div>
+            `).join('');
+        }
+
+        function cancelPractice() {
+            if (!confirm('确定退出练习吗？')) return;
+            resetPractice();
+        }
+
+        function resetPractice() {
+            practiceQuestions = [];
+            practiceAnswers = {};
+            document.getElementById('practiceSetup').style.display = 'block';
+            document.getElementById('practiceArea').style.display = 'none';
+            document.getElementById('practiceResult').style.display = 'none';
+        }
+
+        // ========== 数据大屏功能 ==========
+        function loadDataScreen() {
+            const results = JSON.parse(localStorage.getItem('results') || '[]');
+            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+
+            const totalCount = results.length;
+            const avgScore = totalCount ? (results.reduce((s,r)=>s+r.score,0)/totalCount).toFixed(1) : 0;
+            const passCount = results.filter(r => {
+                const exam = exams.find(e=>e.id===r.examId);
+                return exam && r.score >= exam.passScore;
+            }).length;
+            const excellentCount = results.filter(r => {
+                const exam = exams.find(e=>e.id===r.examId);
+                if (!exam) return false;
+                const total = calcExamTotalScore(exam.config);
+                return r.score >= total * 0.9;
+            }).length;
+            const passRate = totalCount ? Math.round(passCount/totalCount*100) : 0;
+            const excellentRate = totalCount ? Math.round(excellentCount/totalCount*100) : 0;
+
+            document.getElementById('dataScreenStats').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${totalCount}</div><div class="stat-label">总考试次数</div></div>
+                <div class="stat-card green"><div class="stat-value">${avgScore}</div><div class="stat-label">平均分</div></div>
+                <div class="stat-card orange"><div class="stat-value">${passRate}%</div><div class="stat-label">及格率</div></div>
+                <div class="stat-card purple"><div class="stat-value">${excellentRate}%</div><div class="stat-label">优秀率</div></div>
+            `;
+
+            // 各科目成绩分布
+            const subjects = [...new Set(exams.map(e=>e.subject))];
+            const subjectAvgs = subjects.map(s => {
+                const sExamIds = exams.filter(e=>e.subject===s).map(e=>e.id);
+                const sResults = results.filter(r=>sExamIds.includes(r.examId));
+                return sResults.length ? Math.round(sResults.reduce((sum,r)=>sum+r.score,0)/sResults.length) : 0;
+            });
+            
+            const subChart = echarts.init(document.getElementById('subjectChart'));
+            subChart.setOption({
+                title:{text:'各科目平均分',left:'center'},
+                tooltip:{trigger:'axis'},
+                xAxis:{type:'category',data:subjects},
+                yAxis:{type:'value'},
+                series:[{type:'bar',data:subjectAvgs,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#667eea'},{offset:1,color:'#764ba2'}])}}]
+            });
+
+            // 成绩区间分布
+            const grades = {优秀:0,良好:0,及格:0,不及格:0};
+            results.forEach(r => {
+                const exam = exams.find(e=>e.id===r.examId);
+                if (!exam) return;
+                const total = calcExamTotalScore(exam.config);
+                const ratio = r.score / total;
+                if (ratio >= 0.9) grades['优秀']++;
+                else if (ratio >= 0.8) grades['良好']++;
+                else if (ratio >= 0.6) grades['及格']++;
+                else grades['不及格']++;
+            });
+            
+            const gdChart = echarts.init(document.getElementById('gradeDistChart'));
+            gdChart.setOption({
+                title:{text:'成绩等级分布',left:'center'},
+                tooltip:{trigger:'item'},
+                series:[{type:'pie',radius:['40%','70%'],data:Object.entries(grades).map(([k,v])=>({name:k,value:v})),
+                    itemStyle:{borderRadius:5,borderColor:'#fff',borderWidth:2}}]
+            });
+
+            // 趋势图
+            const recentExams = exams.slice(-10);
+            const trendData = recentExams.map(e => {
+                const eResults = results.filter(r=>r.examId===e.id);
+                return eResults.length ? Math.round(eResults.reduce((s,r)=>s+r.score,0)/eResults.length) : 0;
+            });
+            
+            const trChart = echarts.init(document.getElementById('trendChart'));
+            trChart.setOption({
+                title:{text:'近期考试平均分趋势',left:'center'},
+                tooltip:{trigger:'axis'},
+                xAxis:{type:'category',data:recentExams.map(e=>e.name.substring(0,10)),axisLabel:{rotate:30}},
+                yAxis:{type:'value'},
+                series:[{type:'line',data:trendData,smooth:true,areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(102,126,234,0.5)'},{offset:1,color:'rgba(102,126,234,0.1)'}])},itemStyle:{color:'#667eea'}}]
+            });
+        }
     </script>
 </body>
 </html>
