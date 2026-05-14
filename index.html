@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>校园在线考试与自动评卷系统 - 数据产业学院</title>
+    <title>数苑智考管理系统</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         * {
@@ -735,8 +735,8 @@
     <!-- 登录注册页面 -->
     <div class="auth-container" id="authPage">
         <div class="auth-box">
-            <h1>🎓 校园在线考试系统</h1>
-            <p class="subtitle">数据产业学院 · 在线考试与自动评卷</p>
+            <h1>🎓 数苑智考管理系统</h1>
+            <p class="subtitle">在线考试与自动评卷</p>
             
             <div class="role-toggle">
                 <button class="active" data-role="student">学生</button>
@@ -793,7 +793,7 @@
         <div class="container">
             <!-- 头部 -->
             <div class="app-header">
-                <h2>🎓 校园在线考试系统</h2>
+                <h2>🎓 数苑智考管理系统</h2>
                 <div class="user-info">
                     <span id="currentUserName">用户名</span>
                     <span class="tag tag-primary" id="currentUserRole">学生</span>
@@ -940,7 +940,7 @@
             </div>
 
             <!-- 考试页面 -->
-            <div class="page" id="examPage" style="display: none;">
+            <div class="page" id="examPage">
                 <div class="exam-info" id="examInfo"></div>
                 <div class="exam-header">
                     <div>
@@ -964,7 +964,7 @@
                             <button class="btn btn-small btn-success" id="submitBtn" onclick="confirmSubmit()">交卷</button>
                         </div>
                     </div>
-                    <div class="question-nav">
+                    <div class="question-nav" id="questionNav">
                         <h4>答题卡</h4>
                         <div class="answer-card-legend">
                             <div class="legend-item"><div class="legend-dot current"></div>当前</div>
@@ -2110,6 +2110,10 @@
                     <button class="btn btn-secondary" onclick="cancelExam()">返回</button>
                 </div>
             `;
+
+            // 显示考试页面
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('examPage').classList.add('active');
 
             document.getElementById('examInfo').style.display = 'block';
             document.getElementById('examTimer').style.display = 'none';
